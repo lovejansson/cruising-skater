@@ -3,12 +3,14 @@ import { Skater } from "./Skater";
 import "./style.css"
 import { Collision, GameObject } from "./types";
 import AssetManager from "./AssetManager";
+import { DummyObj } from "./DummyObj";
 
 export let keysDown = new Set();
 
 let listenToKeys = new Set([" ", "a", "d"]);
 
 export let gameObjects: GameObject[] = [];
+let lights: GameObject[] = [];
 
 const pPlayerPos = document.querySelector("#p-player-pos");
 const pPlatformPos = document.querySelector("#p-platforms-pos");
@@ -18,15 +20,13 @@ const WIDTH = 320;
 const HEIGHT = 180;
 
 /**
- * TODO: 
- * - Fortsätt på generering av platformar så att det ser snyggt ut.
+ * - Generera obsticles / lampor
+ * - kollisionshantering för udda objekt som inte är fyrkantiga.
+ * - Separera translateY för hopp och för skifte nedåt
+ * - ersätt fyrkant med spelarens animeringar för olika hopp.
  * - Gör så att bakgrunden är längre bort och mindre detaljrik/mindre hus.
- * - kollisionshantering för udda objekt som inte är fyrkantiga
- * - ersätt fyrkant med spelarens animeringar för olika hopp 
  * 
  */
-
-
 function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, elapsedMillis?: number) {
 
     update(elapsedMillis ?? 0);
@@ -41,7 +41,9 @@ function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, elapsedMill
     // This is done by translating the canvas to the left since the player is going to the right.
 
     let translateX = skater.pos.x - WIDTH / 2;
-    let translateY = skater.pos.y - HEIGHT / 2;
+    let translateY = skater.standingPosY - HEIGHT / 2;
+
+    console.log(translateY)
 
     // Reset translation after a threshhold to avoid to big numbers. 
 
@@ -50,9 +52,6 @@ function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, elapsedMill
     // Pull back all game objects with threshhold pixels to reset translation values
 
     if (translateX >= threshHold) {
-        console.log("canvas translate ", translateX)
-        console.log(JSON.parse(JSON.stringify(gameObjects)));
-
         // Reset all objects to pos x 
         for (const obj of gameObjects) {
             obj.pos.x -= translateX;
@@ -62,28 +61,26 @@ function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, elapsedMill
         for (const obj of gameObjects) {
             obj.pos.y -= translateY;
 
+            if ((obj instanceof Platform)) {
+                obj.endY -= translateY;
+            }
         }
 
-        console.log(gameObjects[gameObjects.length - 1].pos.x)
-        createPlatforms(gameObjects[gameObjects.length - 1].pos.x + 64, gameObjects[gameObjects.length - 1].pos.y);
+        // Reset all objects to pos x 
+        for (const obj of lights) {
+            obj.pos.x -= translateX;
+        }
 
-        console.log(JSON.parse(JSON.stringify(gameObjects)));
+        // Reset all objects to pos x 
+        for (const obj of lights) {
+            obj.pos.y -= translateY;
+        }
+        const latestPlatform: Platform = gameObjects[gameObjects.length - 1] as Platform;
+        createPlatforms(latestPlatform.pos.x + 64, latestPlatform.endY);
 
         translateX = 0;
         translateY = 0;
     }
-
-    /*     if (translateY >= threshHold) {
-    
-            // Reset all objects to pos x 
-            for (const obj of gameObjects) {
-                obj.pos.y -= translateY;
-    
-            }
-    
-            translateY = 0;
-        }
-     */
 
     ctxPlatform.translate(-translateX, -translateY); // Follow the player
 
@@ -99,6 +96,11 @@ function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, elapsedMill
         Platforms org range: x${gameObjects[1].pos.x - currentTransform.e} y${gameObjects[1].pos.y - currentTransform.f} - x${gameObjects[gameObjects.length - 1].pos.x - currentTransform.e} y${gameObjects[gameObjects.length - 1].pos.y - currentTransform.f} `;
 
         pCanvasState.innerHTML = `Canvas translate: x${ctxPlatform.getTransform().e} y${ctxPlatform.getTransform().f} <br/> <br/> Clearing rect: ${-currentTransform.e + ctxPlatform.canvas.width}, ${-currentTransform.f + ctxPlatform.canvas.height}`;
+    }
+
+    // Draw objects
+    for (let obj of lights) {
+        obj.draw(ctxPlatform);
     }
 
     // Draw objects
@@ -229,11 +231,14 @@ async function init() {
 
 
 async function initAssets() {
-    const assetManager = AssetManager.getInstance();
-    assetManager.register("background", "/background.png");
 
+    const assetManager = AssetManager.getInstance();
+
+    assetManager.register("background", "/background.png");
     assetManager.register("platform-flat", "/flat.png");
-    assetManager.register("platform-stair", "/stair.png");
+    assetManager.register("platform-stairs-steep", "/stairs-steep.png");
+    assetManager.register("platform-stairs-shallow", "/stairs-shallow.png");
+    assetManager.register("light", "/light.png");
 
     await assetManager.load();
 }
@@ -260,51 +265,111 @@ function setKeyListeners() {
 }
 
 
+type CreatePlatformFunction = (currentX: number, currentY: number, width: number, height: number) => Platform;
+
+/**
+ * Creates a function used to choose the next platform image to use in the continous generation of platforms.  
+ */
+function createPlatformFunction(): CreatePlatformFunction {
+
+    const assetManager = AssetManager.getInstance();
+    const flat = assetManager.get("platform-flat");
+    const stairsSteep = assetManager.get("platform-stairs-steep");
+    const stairsShallow = assetManager.get("platform-stairs-shallow");
+
+    enum PlatformTile {
+        FLAT,
+        STAIRS_STEEP,
+        STAIRS_SHALLOW
+    }
 
 
-let lastImageIsStair = false;
+    const platformCombinationsStairs: PlatformTile[][] = [[PlatformTile.STAIRS_STEEP, PlatformTile.STAIRS_STEEP], [PlatformTile.STAIRS_STEEP, PlatformTile.STAIRS_STEEP, PlatformTile.STAIRS_STEEP], [PlatformTile.STAIRS_STEEP, PlatformTile.FLAT,
+    PlatformTile.STAIRS_STEEP], [PlatformTile.STAIRS_SHALLOW, PlatformTile.FLAT, PlatformTile.STAIRS_SHALLOW]];
 
-let numberOfSamePlatform = 0;
+    const platformCombinationsFlat: PlatformTile[][] = [[PlatformTile.FLAT, PlatformTile.FLAT, PlatformTile.FLAT], [PlatformTile.FLAT, PlatformTile.FLAT, PlatformTile.FLAT, PlatformTile.FLAT],
+    [PlatformTile.FLAT, PlatformTile.FLAT, PlatformTile.FLAT, PlatformTile.FLAT, PlatformTile.FLAT]];
+
+    function getEndYForPlatform(currY: number) {
+        switch (currPlatformTile) {
+            case PlatformTile.FLAT:
+                return currY;
+            case PlatformTile.STAIRS_STEEP:
+                return currY + 32;
+            case PlatformTile.STAIRS_SHALLOW:
+                return currY + 12;
+        }
+    }
+
+    function getPlatformImage(platformTile: PlatformTile): HTMLImageElement {
+        switch (platformTile) {
+            case PlatformTile.FLAT:
+                return flat;
+            case PlatformTile.STAIRS_STEEP:
+                return stairsSteep;
+            case PlatformTile.STAIRS_SHALLOW:
+                return stairsShallow;
+        }
+    }
+
+    let currCombo = platformCombinationsFlat[0];
+    let currComboIdx = 0;
+    let currPlatformTile: PlatformTile = PlatformTile.FLAT;
+
+    // Function that will be used to get the next platform 
+    return function (currX: number, currY: number, width: number, height: number): Platform {
+
+        // We've reach the end of the combination, pick new one. 
+        if (currComboIdx === currCombo.length) {
+            currComboIdx = 0;
+
+            switch (currPlatformTile) {
+                case PlatformTile.FLAT:
+                    const i = Math.floor(Math.random() * platformCombinationsStairs.length);
+
+                    currCombo = platformCombinationsStairs[i];
+                    break;
+                case PlatformTile.STAIRS_STEEP:
+                case PlatformTile.STAIRS_SHALLOW:
+                    const idx = Math.floor(Math.random() * platformCombinationsFlat.length);
+
+                    currCombo = platformCombinationsFlat[idx];
+                    break;
+            }
+        }
+
+        currPlatformTile = currCombo[currComboIdx++];
+        const endY = getEndYForPlatform(currY);
+
+        return new Platform({ x: currX, y: currY }, width, height, endY, getPlatformImage(currPlatformTile));
+
+    };
+}
+
 
 function createPlatforms(startX = 0, startY = 0) {
 
     const platformWidth = 64;
-
+    const platformHeight = 144;
     const numberOfPlatformsFor1Page = (startX === 0 ? WIDTH * 2 : WIDTH) / platformWidth;
-
-    console.log("START IONDEX", startX, numberOfPlatformsFor1Page)
-    const assetManager = AssetManager.getInstance();
-
-    const platformFlatImage = assetManager.get("platform-flat");
-    const platformStairImage = assetManager.get("platform-stair");
-
-    let image = platformFlatImage;
 
     let y = startY || 90 + 15;
 
+    const createPlatform = createPlatformFunction();
+
+    const light = AssetManager.getInstance().get("light");
+
     for (let i = 0; i < numberOfPlatformsFor1Page; ++i) {
 
-        if (lastImageIsStair) {
-            y += 32;
+        if (i % 2 === 0) {
+            lights.push(new DummyObj({ x: startX + platformWidth * i, y: y - 64 }, 16, 64, light));
         }
 
-        if (numberOfSamePlatform === 2) {
-            if (lastImageIsStair) {
-                image = platformFlatImage;
-                lastImageIsStair = false;
-            } else {
-                image = platformStairImage;
-                lastImageIsStair = true;
-            }
-            numberOfSamePlatform = 0;
-        }
+        const platform = createPlatform(startX + platformWidth * i, y, platformWidth, platformHeight);
 
+        gameObjects.push(platform);
 
-
-        gameObjects.push(new Platform({ x: startX + (platformWidth * i), y: y }, platformWidth, 144, image));
-
-
-        numberOfSamePlatform++;
+        y = platform.endY;
 
     }
 
@@ -312,8 +377,8 @@ function createPlatforms(startX = 0, startY = 0) {
 
     if (startX !== 0) {
         gameObjects.splice(1, 5);
+        lights.splice(0, 3);
     }
-
 }
 
 
@@ -335,10 +400,7 @@ init().then(() => {
 
             const backgroundImage = AssetManager.getInstance().get("background");
 
-
-
             ctxBackground.drawImage(backgroundImage, 0, 0, 320, 180);
-
 
             gameObjects.push(skater);
 

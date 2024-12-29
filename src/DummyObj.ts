@@ -1,6 +1,6 @@
 import { Collision, CollisionBox, GameObject, Point } from "./types";
 
-export class Platform implements GameObject {
+export class DummyObj implements GameObject {
 
     id: string;
     pos: Point;
@@ -8,11 +8,11 @@ export class Platform implements GameObject {
     type: string;
     width: number;
     height: number;
-    endY: number;
+
 
     private image: HTMLImageElement;
 
-    constructor(pos: Point, width: number, height: number, endY: number, image: HTMLImageElement) {
+    constructor(pos: Point, width: number, height: number, image: HTMLImageElement) {
 
         this.pos = pos;
         this.vel = { x: 0, y: 0 };
@@ -21,7 +21,7 @@ export class Platform implements GameObject {
         this.width = width;
         this.height = height;
         this.image = image;
-        this.endY = endY;
+
 
     }
 
@@ -34,25 +34,11 @@ export class Platform implements GameObject {
     }
 
     draw(ctx: CanvasRenderingContext2D) {
-
-
-        ctx.strokeStyle = "red";
-
-        ctx.beginPath();
-        ctx.moveTo(this.pos.x - 0.5, this.pos.y - 0.5);
-        ctx.lineTo(this.pos.x - 0.5 + this.width, this.pos.y - 0.5);
-
-        ctx.stroke();
-
-
         ctx.drawImage(this.image, this.pos.x, this.pos.y)
-
-
-
     }
 
     update(_: number, __: Collision[]) {
 
     }
-}
 
+}

@@ -15,7 +15,8 @@ export class Skater implements GameObject {
     private width: number;
     private height: number;
 
-    public skatedPixelDiff: number;
+    standingPosY: number;
+
 
     constructor(pos: Point, vel: Point) {
 
@@ -27,7 +28,8 @@ export class Skater implements GameObject {
         this.jumpFrame = 0;
         this.width = 16;
         this.height = 16;
-        this.skatedPixelDiff = 0;
+        this.standingPosY = this.pos.y;
+
 
     }
 
@@ -39,7 +41,7 @@ export class Skater implements GameObject {
 
     }
 
-    update(elapsedMillis: number, collisions: Collision[]): void {
+    update(_: number, collisions: Collision[]): void {
 
         let isCollidingWithP = false;
 
@@ -50,6 +52,7 @@ export class Skater implements GameObject {
 
                 // set skater to standing on platform
                 this.pos.y = c.obj.pos.y - this.height + 1;
+                this.standingPosY = c.obj.pos.y - this.height + 1;
                 isCollidingWithP = true;
                 break;
             }
@@ -66,7 +69,6 @@ export class Skater implements GameObject {
                 this.updateJumpVelY();
             } else {
                 this.isJumping = false;
-
                 this.vel.y = 0;
                 this.jumpFrame = 0;
             }
@@ -92,9 +94,9 @@ export class Skater implements GameObject {
             this.vel.x = 0;
         }
 
-        this.skatedPixelDiff += this.vel.x;
         this.pos.x += this.vel.x;
         this.pos.y += this.vel.y;
+
 
 
     }
@@ -106,7 +108,7 @@ export class Skater implements GameObject {
         // Determine velocity y
 
         const g = 2;
-        const vi = -20;
+        const vi = -12;
 
         // Calculates the velocity vf = vi + at where vi is the initial jump velocity above and a is the gravity that pulls the skater 1 pixel downwards. t is the number of frames. 
         this.vel.y = vi + (g * this.jumpFrame);
