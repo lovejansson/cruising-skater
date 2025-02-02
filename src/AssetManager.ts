@@ -65,6 +65,7 @@ export default class AssetManager {
      * Get the specifiec image for drawing onto canvas
      */
     public get(name: string): HTMLImageElement {
+
         const image = this.assets.get(name);
 
         if (!image) throw new AssetNotLoadedError(name);

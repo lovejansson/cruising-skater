@@ -1,5 +1,6 @@
 
 import { keysDown } from "./main";
+import { Platform } from "./Platform";
 import { Collision, CollisionBox, GameObject, Point } from "./types";
 
 
@@ -10,7 +11,7 @@ export class Skater implements GameObject {
     public id: string;
     public type: string;
 
-    private isJumping: boolean;
+    isJumping: boolean;
     private jumpFrame: number;
     private width: number;
     private height: number;
@@ -34,7 +35,7 @@ export class Skater implements GameObject {
     }
 
     getCollisionBox(): CollisionBox {
-        return { y: this.pos.y, x: this.pos.x, w: this.width, h: this.height }
+        return { y: this.pos.y, x: this.pos.x, w: this.width, h: this.height, type: "box" }
     }
 
     init(): void {
@@ -43,38 +44,35 @@ export class Skater implements GameObject {
 
     update(_: number, collisions: Collision[]): void {
 
-        let isCollidingWithP = false;
-
-
+        let isOnPlatform = false;
 
         for (const c of collisions) {
-            if (c.collisionPoint === "south") {
-
-                // set skater to standing on platform
+            if (c.collisionPoint === "south" && c.obj instanceof Platform) {
+                // Align skater y position with platform
                 this.pos.y = c.obj.pos.y - this.height + 1;
-                this.standingPosY = c.obj.pos.y - this.height + 1;
-                isCollidingWithP = true;
+                isOnPlatform = true;
                 break;
             }
         }
 
+        // Start jumping
         if (!this.isJumping && keysDown.has(" ")) {
+
             this.isJumping = true;
+            this.standingPosY = this.pos.y;
             this.updateJumpVelY();
 
+            // Update jumping state
         } else if (this.isJumping) {
-
-            if (!isCollidingWithP) {
-
-                this.updateJumpVelY();
-            } else {
+            if (isOnPlatform) {
                 this.isJumping = false;
                 this.vel.y = 0;
                 this.jumpFrame = 0;
+            } else {
+                this.updateJumpVelY();
             }
 
-        } else if (!isCollidingWithP) {
-
+        } else if (!isOnPlatform) {
             this.vel.y = 4;
         } else {
             this.vel.y = 0;
@@ -84,12 +82,8 @@ export class Skater implements GameObject {
 
         if (keysDown.has("d")) {
             this.vel.x = 4;
-
-
-        }
-        else if (keysDown.has("a")) {
+        } else if (keysDown.has("a")) {
             this.vel.x = -4;
-
         } else {
             this.vel.x = 0;
         }
@@ -97,7 +91,10 @@ export class Skater implements GameObject {
         this.pos.x += this.vel.x;
         this.pos.y += this.vel.y;
 
+        if (this.pos.y > this.standingPosY) {
 
+            this.standingPosY = this.pos.y;
+        }
 
     }
 
