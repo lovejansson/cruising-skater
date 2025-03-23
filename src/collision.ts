@@ -1,6 +1,10 @@
 import {   GameObject } from "./types";
 
-
+/**
+ * Collision detection by using Axis-Aligned Bounding Box (AABB) algorithm. 
+ * Doesn't account for more deeply overlapping objects... expects user to separate objects on collision, so the 'blocked' properties may be
+ * weird if that's not the case.
+ */
 export function getCollision(obj1: GameObject, obj2: GameObject): Collision | null  {
 
     const box1 = obj1.getCollisionBox();
@@ -28,8 +32,6 @@ export function getCollision(obj1: GameObject, obj2: GameObject): Collision | nu
 
         const isVerticalCollision = overlapX >= overlapY;
         const isHorizontalCollision = overlapY >= overlapX;
-
-        // Update the rect's blocked property
 
         return {obj: obj2, blocked: {
             top: isVerticalCollision && box1.y > box2.y, 

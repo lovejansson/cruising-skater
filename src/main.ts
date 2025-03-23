@@ -138,20 +138,16 @@ async function initAssets() {
 function setKeyListeners() {
 
     addEventListener("keydown", (e) => {
-
         if (listenToKeys.has(e.key) && !keysDown.has(e.key)) {
             keysDown.add(e.key);
         }
-
     });
 
 
     addEventListener("keyup", (e) => {
-
         if (keysDown.has(e.key)) {
             keysDown.delete(e.key);
         }
-
     });
 }
 
@@ -442,9 +438,8 @@ async function init() {
     }
 
     throw new Error("Failed to initialize canvas");
-
 }
 
 init().then(({ ctxPlatform, skater, generatePlatforms }) => {
     play(skater, ctxPlatform, generatePlatforms);
-});
+}).catch(error => console.error(error));

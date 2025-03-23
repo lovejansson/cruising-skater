@@ -30,11 +30,6 @@ export class Platform implements GameObject {
         return { y: this.pos.y, x: this.pos.x, width: this.width, height: this.height }
     }
 
-    init(): void {
-
-    }
-
-
     /**
      * Gets the y for the current pos of x within this obj which depends on the slop of the object. 
      * @param otherObj 

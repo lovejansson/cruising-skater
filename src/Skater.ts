@@ -2,20 +2,8 @@
 import { Collision, CollisionBox } from "./collision";
 import { keysDown } from "./main";
 import { Obsticle } from "./Obsticle";
-import { Platform } from "./Platform";
 import { GameObject, Point } from "./types";
 
-/**
- * 
- * Åker för evigt 
- * 
- * När det kommer ett hinder kan den välja att hoppa upp på det eller åka förbi
- * 
- * När det kommer en trappa måste den hoppa -> lång trappa långt hopp, dubbel trappa -> två korta hopp, enkel trappa -> kort hopp. 
- * 
- * När det kommer ett hinder vid en trappa ska den åka på det hindret nedåt 
- * 
- */
 
 interface SkaterState {
     update(skater: Skater): void;
@@ -93,10 +81,6 @@ export class Skater implements GameObject {
 
     getCollisionBox(): CollisionBox {
         return { y: this.pos.y, x: this.pos.x, width: this.width, height: this.height }
-    }
-
-    init(): void {
-
     }
 
     private isJumping(){
