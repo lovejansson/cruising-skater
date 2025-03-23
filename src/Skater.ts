@@ -1,4 +1,5 @@
 
+import { AnimationManager } from "./AnimationManager";
 import { Collision, CollisionBox } from "./collision";
 import { keysDown } from "./main";
 import { Obsticle } from "./Obsticle";
@@ -13,11 +14,10 @@ class JumpingState implements SkaterState {
   
     private jumpFrame: number;
 
-
     constructor(){
         this.jumpFrame = 0;
-    
     }
+
     update(skater: Skater): void {
 
         if (this.jumpFrame > 0 && skater.isBlockedDown) {
@@ -59,6 +59,7 @@ export class Skater implements GameObject {
     width: number;
     height: number;
     vel: Point;
+    private animations: AnimationManager;
 
     public id: string;
     public type: string;
@@ -77,6 +78,13 @@ export class Skater implements GameObject {
         this.height = 16;
         this.state = new CruisingState();
         this.isBlockedDown = false;
+
+        // Setup sprite animations
+        
+        this.animations = new AnimationManager(this);
+        this.animations.create("alien", {loop: true, frames: "alien", numberOfFrames: 4});
+        this.animations.play("alien");
+
     }
 
     getCollisionBox(): CollisionBox {
@@ -99,24 +107,18 @@ export class Skater implements GameObject {
         
         // Sorted by placing obsticles last beacuse we want to have that as the last standing point.
         const collisionsSorted = collisions.sort((c1, c2) => {
-
             if(c1.obj instanceof Obsticle) return 1; 
             if(c2.obj instanceof Obsticle) return -1;
-        
             return 0;
         
         });
 
         for (const c of collisionsSorted) {
-
-
             if( isConsideringObsticle || !(c.obj instanceof Obsticle)) {
-      
                 this.isBlockedDown = true;
                 const y = c.obj.y(this);
                 this.pos.y =  y - this.height;
             }
-       
         }
  
     
@@ -136,18 +138,13 @@ export class Skater implements GameObject {
         this.pos.x += this.vel.x;
         this.pos.y += this.vel.y;
 
-
+        this.animations.update();
 
     }
 
 
     draw(ctx: CanvasRenderingContext2D): void {
-
-        ctx.fillStyle = "darkblue";
-        ctx.fillRect(this.pos.x, this.pos.y, this.width, this.height);
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(this.pos.x - 0.5, this.pos.y - 0.5, this.width, this.height);
-
+        this.animations.draw(ctx);
     }
 
 }

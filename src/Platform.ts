@@ -45,10 +45,6 @@ export class Platform implements GameObject {
         return Math.round(this.pos.y + slope * (otherObj.pos.x + otherObj.width / 2 - this.pos.x));
     }
 
-    isFlat() {
-        return this.endYdiff === 0;
-    }
-
     debug(ctx: CanvasRenderingContext2D) {
 
         ctx.strokeStyle = "red";

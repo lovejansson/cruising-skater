@@ -72,7 +72,6 @@ export default class AssetManager {
 
         return image;
     }
-
 }
 
 

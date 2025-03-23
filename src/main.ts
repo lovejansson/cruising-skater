@@ -131,6 +131,9 @@ async function initAssets() {
     assetManager.register("wall-short", "/wall-short.png");
     assetManager.register("wall-long", "/wall-long.png");
 
+
+    assetManager.register("alien", "/alien-right-spritesheet.png");
+
     await assetManager.load();
 }
 
