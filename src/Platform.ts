@@ -1,4 +1,5 @@
-import { Collision, CollisionBox, CollisionLine, GameObject, Point } from "./types";
+import { Collision, CollisionBox } from "./collision";
+import {  GameObject, Point } from "./types";
 
 export class Platform implements GameObject {
 
@@ -25,21 +26,35 @@ export class Platform implements GameObject {
 
     }
 
-    getCollisionBox(): CollisionBox | CollisionLine {
-
-        if (this.endYdiff > 0) {
-            return { y1: this.pos.y, x1: this.pos.x, x2: this.pos.x + this.width, y2: this.pos.y + this.endYdiff, type: "line" }
-        }
-
-        return { y: this.pos.y, x: this.pos.x, w: this.width, h: this.height, type: "box" }
-
+    getCollisionBox(): CollisionBox {
+        return { y: this.pos.y, x: this.pos.x, width: this.width, height: this.height }
     }
 
     init(): void {
 
     }
 
-    draw(ctx: CanvasRenderingContext2D) {
+
+    /**
+     * Gets the y for the current pos of x within this obj which depends on the slop of the object. 
+     * @param otherObj 
+     */
+    y(otherObj: GameObject) {
+        if(this.endYdiff === 0) return this.pos.y;
+
+        if (otherObj.pos.x + otherObj.width < this.pos.x || otherObj.pos.x > this.pos.x + this.width) throw new Error("Other object is not within the range of this obsticle.");
+
+        if(otherObj.pos.x < this.pos.x) return this.pos.y;
+        const slope = this.endYdiff / this.width;
+
+        return Math.round(this.pos.y + slope * (otherObj.pos.x + otherObj.width / 2 - this.pos.x));
+    }
+
+    isFlat() {
+        return this.endYdiff === 0;
+    }
+
+    debug(ctx: CanvasRenderingContext2D) {
 
         ctx.strokeStyle = "red";
         ctx.beginPath();
@@ -59,9 +74,12 @@ export class Platform implements GameObject {
         }
 
         ctx.stroke();
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
 
         ctx.drawImage(this.image, this.pos.x, this.pos.y)
-
+       // this.debug(ctx)
     }
 
     update(_: number, __: Collision[]) {
