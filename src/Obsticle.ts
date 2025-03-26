@@ -13,7 +13,7 @@ export class Obsticle implements GameObject {
 
     private image: HTMLImageElement;
 
-    constructor(pos: Point, width: number, height: number,endYDiff: number, image: HTMLImageElement) {
+    constructor(pos: Point, width: number, height: number, endYDiff: number, image: HTMLImageElement) {
         this.pos = pos;
         this.vel = { x: 0, y: 0 };
         this.width = width;

@@ -4,8 +4,7 @@ import { GameObject } from "./types";
 export type AnimationConfig = {
     frames: string[] | string; // Array of string asset keys or one asset key for a sprite sheet asset
     loop: boolean;
-    numberOfFrames?: number;
-    
+    numberOfFrames?: number;  
 }
 
 

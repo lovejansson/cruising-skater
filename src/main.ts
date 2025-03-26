@@ -12,9 +12,17 @@ let listenToKeys = new Set([" ", "a", "d"]);
 
 export let gameObjects: GameObject[] = [];
 
-const WIDTH = 320;
-const HEIGHT = 180;
+export const WIDTH = 320;
+export const HEIGHT = 180;
 
+
+let ctx: CanvasRenderingContext2D;
+
+export function getTranslatedPos(pos: {x: number, y: number}) {
+    const currentTransform = ctx!.getTransform();
+
+    return {x: pos.x + currentTransform.e, y: pos.y + currentTransform.f};
+}
 
 function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, generatePlatforms: generatePlatformsFunction, elapsedMillis?: number) {
 
@@ -130,7 +138,7 @@ async function initAssets() {
     assetManager.register("rail-long", "/rail-long.png");
     assetManager.register("wall-short", "/wall-short.png");
     assetManager.register("wall-long", "/wall-long.png");
-
+    assetManager.register("skater-cruise", "/skater.png");
 
     assetManager.register("alien", "/alien-right-spritesheet.png");
 
@@ -307,10 +315,7 @@ function createGeneratePlatformsFunction(): generatePlatformsFunction {
         [
             { obstacle: ObsticleType.NONE, platformTile: PlatformTile.STAIRS_SHALLOW },
         ],
-        [
-            { obstacle: ObsticleType.NONE, platformTile: PlatformTile.STAIRS_STEEP },
-            { obstacle: ObsticleType.NONE, platformTile: PlatformTile.STAIRS_STEEP }
-        ],
+
         [
             { obstacle: ObsticleType.NONE, platformTile: PlatformTile.STAIRS_STEEP },
             { obstacle: ObsticleType.NONE, platformTile: PlatformTile.FLAT },
@@ -398,7 +403,7 @@ function createGeneratePlatformsFunction(): generatePlatformsFunction {
         // Remove platforms that will not be visible again
 
         if (startX !== 0) {
-            gameObjects = gameObjects.filter(o => o.pos.x > -2);
+            gameObjects = gameObjects.filter(o => o.pos.x > -64);
 
         }
     }
@@ -444,5 +449,6 @@ async function init() {
 }
 
 init().then(({ ctxPlatform, skater, generatePlatforms }) => {
+    ctx = ctxPlatform;
     play(skater, ctxPlatform, generatePlatforms);
 }).catch(error => console.error(error));
