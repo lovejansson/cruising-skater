@@ -6,6 +6,8 @@ import AssetManager from "./AssetManager";
 import { Obsticle } from "./Obsticle";
 import { Collision, getCollision } from "./collision";
 
+export const DEBUG = false;
+
 export let keysDown = new Set();
 
 let listenToKeys = new Set([" ", "a", "d"]);
@@ -42,7 +44,7 @@ function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, generatePla
 
     // Reset translation after a threshhold to avoid to big numbers. 
 
-    const threshHold = WIDTH;
+    const threshHold = WIDTH ;
 
     // Pull back all game objects with threshhold pixels to reset translation values
 
@@ -133,14 +135,18 @@ async function initAssets() {
     assetManager.register("wall-stairs-steep-open-end", "/wall-stairs-steep-open-end.png");
     assetManager.register("wall-short-open-ends", "/wall-short-open-ends.png");
     assetManager.register("wall-stairs-steep-open-beginning", "/wall-stairs-steep-open-beginning.png");
+
     assetManager.register("wall-long", "/wall-long.png");
     assetManager.register("rail-short", "/rail-short.png");
     assetManager.register("rail-long", "/rail-long.png");
     assetManager.register("wall-short", "/wall-short.png");
     assetManager.register("wall-long", "/wall-long.png");
-    assetManager.register("skater-cruise", "/skater.png");
 
-    assetManager.register("alien", "/alien-right-spritesheet.png");
+    assetManager.register("skater-cruise", "/skater-cruise.png");
+
+    for(let i = 0; i < 6; ++i) {
+        assetManager.register(`skater-jump${i + 1}`, `/skater-jump${i + 1}.png`)
+    }
 
     await assetManager.load();
 }
@@ -331,7 +337,6 @@ function createGeneratePlatformsFunction(): generatePlatformsFunction {
             { obstacle: ObsticleType.WALL_STAIRS_STEEP_OPEN_BEGINNING, platformTile: PlatformTile.STAIRS_STEEP }
         ],
 
-
     ];
 
 
@@ -390,9 +395,9 @@ function createGeneratePlatformsFunction(): generatePlatformsFunction {
 
         const platformWidth = 64;
 
-        // Create platforms that so that it always cover 2 * canvas WIDTHS 
+        // Create platforms that so that it always cover 3 * canvas WIDTHS 
 
-        const numOfPlatforms = (startX === 0 ? WIDTH * 2 : WIDTH) / platformWidth;
+        const numOfPlatforms = (startX === 0 ? WIDTH * 3 : WIDTH) / platformWidth;
 
         let y = startY || 90 + 15;
 
@@ -402,10 +407,7 @@ function createGeneratePlatformsFunction(): generatePlatformsFunction {
 
         // Remove platforms that will not be visible again
 
-        if (startX !== 0) {
-            gameObjects = gameObjects.filter(o => o.pos.x > -64);
-
-        }
+        gameObjects = gameObjects.filter(o => o.pos.x > -64);
     }
 }
 

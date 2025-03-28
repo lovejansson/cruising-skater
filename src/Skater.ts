@@ -5,7 +5,7 @@ import { gameObjects, getTranslatedPos, WIDTH } from "./main";
 import { Obsticle } from "./Obsticle";
 import { Platform } from "./Platform";
 import { GameObject, Point } from "./types";
-
+import "./array";
 
 interface SkaterState {
     update(skater: Skater): void;
@@ -15,16 +15,22 @@ class JumpingState implements SkaterState {
   
     private jumpFrame: number;
     private vel: Point;
+    private trick: string;
 
-    constructor(vel: Point){
+    static obsticleTricks: string[] = Array(4).fill(0).map((_, idx) => `skater-jump${idx + 1}`);
+    static stairsTricks: string[] = Array(6).fill(0).map((_, idx) => `skater-jump${idx + 1}`);
+
+    constructor(vel: Point, trick: string){
         this.jumpFrame = 0;
         this.vel = vel;
+        this.trick = trick;
+    
     }
 
     update(skater: Skater): void {
 
         if (this.jumpFrame > 0 && skater.isBlockedDown) {
-            skater.state = new CruisingState(this.vel.x -= 1);
+            skater.state = new CruisingState(2);
             skater.vel.y = 0;
             return;
         } 
@@ -40,8 +46,12 @@ class JumpingState implements SkaterState {
 
         // Calculates the velocity vf = vi + at where vi is the initial jump velocity above and a is the gravity that pulls the skater 1 pixel downwards. t is the number of frames. 
         skater.vel.y = vi + (g * this.jumpFrame);
-    }
 
+             skater.pos.x += skater.vel.x;
+       skater.pos.y += skater.vel.y;
+
+       if(!skater.animations.isPlaying(this.trick)) skater.animations.play(this.trick);
+    }
 }
 
 class CruisingState implements SkaterState {
@@ -57,10 +67,20 @@ class CruisingState implements SkaterState {
             if(skater.isBlockedDown) {
                 skater.vel.y = 0;
             } else {
-                skater.vel.y = 4;
+                const doTrick = Math.random() > 0.75 && !skater.closeToState.approachingStairs;
+                if(doTrick) {
+                    const trick = JumpingState.obsticleTricks.random();
+                    skater.state = new JumpingState({y: -15, x: 3}, trick);
+                }else {
+                    skater.vel.y = 2;
+                }
             }
-    }
 
+            skater.pos.x += skater.vel.x;
+            skater.pos.y += skater.vel.y;
+
+            if(!skater.animations.isPlaying("skater-cruise")) skater.animations.play("skater-cruise");
+    }
 }
 
 export class Skater implements GameObject {
@@ -69,13 +89,20 @@ export class Skater implements GameObject {
     width: number;
     height: number;
     vel: Point;
-    private animations: AnimationManager;
+    animations: AnimationManager;
 
     public id: string;
     public type: string;
 
     state: SkaterState;
     isBlockedDown: boolean;
+
+    closeToState: {
+        closeToStairs: boolean;
+        closeToObsticle: boolean;
+        approachingStairs: boolean;
+        approachingObsticle: boolean;
+    }
    
     constructor(pos: Point, vel: Point) {
 
@@ -88,21 +115,26 @@ export class Skater implements GameObject {
         this.height = 32;
         this.state = new CruisingState(2);
         this.isBlockedDown = false;
-
+        this.closeToState = {
+            closeToObsticle: false,
+            closeToStairs: false,
+            approachingObsticle: false,
+            approachingStairs: false,
+        };
         // Setup sprite animations
         
         this.animations = new AnimationManager(this);
-        this.animations.create("skater-cruise", {loop: true, frames: ["skater-cruise"]});
-        this.animations.play("skater-cruise");
 
+        for(let i = 0; i < 6; ++i) {
+            this.animations.create(`skater-jump${i + 1}`, {loop: true, frames: `skater-jump${i + 1}`, numberOfFrames: 4});
+
+        }
+
+        this.animations.create("skater-cruise", {loop: true, frames: ["skater-cruise"]});
     }
 
     getCollisionBox(): CollisionBox {
         return { y: this.pos.y, x: this.pos.x, width: this.width, height: this.height }
-    }
-
-    private isJumping(){
-        return this.state instanceof JumpingState;
     }
 
     y(obj: GameObject) {
@@ -140,46 +172,44 @@ export class Skater implements GameObject {
 
         if(!standingOnObsticle && !this.isJumping()) {
 
-            const closeToObsticle = this.isCloseToObsticle(gameObjects);
-            const closeToStairs = this.isCloseToStairs(gameObjects);
-            const approchingObsticle = this.isApproachingObsticle(gameObjects);
-            const approchingStairs = this.isApproachingStairs(gameObjects);
+            this.closeToState.closeToObsticle = this.isCloseToObsticle(gameObjects);
+            this.closeToState.closeToStairs = this.isCloseToStairs(gameObjects);
+            this.closeToState.approachingObsticle = this.isApproachingObsticle(gameObjects);
+            this.closeToState.approachingStairs = this.isApproachingStairs(gameObjects);
 
-            if(closeToObsticle) {
-                this.state = new JumpingState({y: -15, x: 3});
-            } else if(closeToStairs) {
-                this.state = new JumpingState({y: -20, x: 3});
-            } else if(approchingStairs && !approchingObsticle) {
-                 this.state = new CruisingState(3);
+            if(this.closeToState.closeToObsticle) {
+                this.state = new JumpingState({y: -15, x: 3}, JumpingState.obsticleTricks.random());
+            } else if(this.closeToState.closeToStairs) {
+                this.state = new JumpingState({y: -15, x: 5}, JumpingState.stairsTricks.random());
+            } else if(this.closeToState.approachingStairs && !this.closeToState.approachingObsticle) {
+                 this.state = new CruisingState(2);
             } 
 
         } else   {
      
         } 
 
-    
         this.state.update(this);
-        this.pos.x += this.vel.x;
-        this.pos.y += this.vel.y;
-
         this.animations.update();
-
     }
-
 
     draw(ctx: CanvasRenderingContext2D): void {
         this.animations.draw(ctx);
     }
 
+    private isJumping(){
+        return this.state instanceof JumpingState;
+    }
+
     private isApproachingObsticle(gameObjects: GameObject[]): boolean {
         return this.isCloseToObsticle(gameObjects, 128);
-     }
+    }
     
     private isApproachingStairs(gameObjects: GameObject[]): boolean {
        return this.isCloseToStairs(gameObjects, 128);
     }
 
-    private isCloseToStairs(gameObjects: GameObject[], diff: number = 4) {
+     isCloseToStairs(gameObjects: GameObject[], diff: number = 4) {
         let minX: number = 10000;
 
         const skaterTranslatedX = WIDTH/2;
@@ -215,7 +245,6 @@ export class Skater implements GameObject {
         }
 
         const diffX = minX - skaterTranslatedX; 
-
         return diffX < diff;
     }
 
