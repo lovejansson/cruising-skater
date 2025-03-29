@@ -7,8 +7,8 @@ import {   GameObject } from "./types";
  */
 export function getCollision(obj1: GameObject, obj2: GameObject): Collision | null  {
 
-    const box1 = obj1.getCollisionBox();
-    const box2 = obj2.getCollisionBox();
+    const box1 = {x: obj1.pos.x, y: obj1.pos.y, width: obj1.width, height: obj1.height};
+    const box2 = {x: obj2.pos.x, y: obj2.pos.y, width: obj2.width, height: obj2.height};
 
     const box1XEnd = box1.x + box1.width;
     const box2XEnd = box2.x + box2.width;

@@ -1,10 +1,9 @@
 
-import { AnimationManager } from "./AnimationManager";
-import { Collision, CollisionBox } from "./collision";
+import { Collision } from "./collision";
 import { gameObjects, getTranslatedPos, WIDTH } from "./main";
 import { Obsticle } from "./Obsticle";
 import { Platform } from "./Platform";
-import { GameObject, Point } from "./types";
+import { DynamicObject, GameObject, Point } from "./types";
 import "./array";
 
 interface SkaterState {
@@ -83,16 +82,7 @@ class CruisingState implements SkaterState {
     }
 }
 
-export class Skater implements GameObject {
-
-    pos: Point;
-    width: number;
-    height: number;
-    vel: Point;
-    animations: AnimationManager;
-
-    public id: string;
-    public type: string;
+export class Skater extends DynamicObject {
 
     state: SkaterState;
     isBlockedDown: boolean;
@@ -104,15 +94,9 @@ export class Skater implements GameObject {
         approachingObsticle: boolean;
     }
    
-    constructor(pos: Point, vel: Point) {
+    constructor(pos: Point, vel: Point, width: number, height: number) {
+        super(pos, vel, width, height);
 
-        this.pos = pos;
-        this.vel = vel;
-        this.type = "skater";
-        this.id = "skater";
-
-        this.width = 20;
-        this.height = 32;
         this.state = new CruisingState(2);
         this.isBlockedDown = false;
         this.closeToState = {
@@ -121,27 +105,17 @@ export class Skater implements GameObject {
             approachingObsticle: false,
             approachingStairs: false,
         };
-        // Setup sprite animations
-        
-        this.animations = new AnimationManager(this);
 
         for(let i = 0; i < 6; ++i) {
             this.animations.create(`skater-jump${i + 1}`, {loop: true, frames: `skater-jump${i + 1}`, numberOfFrames: 4});
-
         }
 
         this.animations.create("skater-cruise", {loop: true, frames: ["skater-cruise"]});
+
+        this.animations.play("skater-cruise");
     }
 
-    getCollisionBox(): CollisionBox {
-        return { y: this.pos.y, x: this.pos.x, width: this.width, height: this.height }
-    }
-
-    y(obj: GameObject) {
-        return this.pos.y;
-    }
-
-    update(_: number, collisions: Collision[]): void {
+    update(collisions: Collision[]): void {
 
         this.isBlockedDown = false;
 
@@ -163,7 +137,7 @@ export class Skater implements GameObject {
             if( isConsideringObsticle || !(c.obj instanceof Obsticle)) {
                 this.isBlockedDown = true;
                 standingOnObsticle = c.obj instanceof Obsticle;
-                const y = c.obj.y(this);
+                const y = (c.obj as (Obsticle | Platform)).y(this);
                 this.pos.y =  y - this.height;
             }
         }
@@ -191,10 +165,6 @@ export class Skater implements GameObject {
 
         this.state.update(this);
         this.animations.update();
-    }
-
-    draw(ctx: CanvasRenderingContext2D): void {
-        this.animations.draw(ctx);
     }
 
     private isJumping(){

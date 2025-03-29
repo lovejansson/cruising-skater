@@ -1,22 +1,24 @@
 import { Platform } from "./Platform";
 import { Skater } from "./Skater";
 import "./style.css"
-import {  GameObject } from "./types";
+import {  DynamicObject, GameObject } from "./types";
 import AssetManager from "./AssetManager";
 import { Obsticle } from "./Obsticle";
 import { Collision, getCollision } from "./collision";
+import { toHSLFromHex, toHSLFromRGB, toRGBFromHSL } from "./color";
 
-export const DEBUG = false;
+ let isPlaying = false;
 
 export let keysDown = new Set();
 
 let listenToKeys = new Set([" ", "a", "d"]);
 
+let overlayColor: string | null = null; 
+
 export let gameObjects: GameObject[] = [];
 
 export const WIDTH = 320;
 export const HEIGHT = 180;
-
 
 let ctx: CanvasRenderingContext2D;
 
@@ -26,82 +28,107 @@ export function getTranslatedPos(pos: {x: number, y: number}) {
     return {x: pos.x + currentTransform.e, y: pos.y + currentTransform.f};
 }
 
-function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, generatePlatforms: generatePlatformsFunction, elapsedMillis?: number) {
+function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, ctxBackground: CanvasRenderingContext2D, generatePlatforms: generatePlatformsFunction) {
 
-    update(elapsedMillis ?? 0);
+    if(isPlaying) {
+        update();
 
-    const currentTransform = ctxPlatform.getTransform();
+        const currentTransform = ctxPlatform.getTransform();
 
-    ctxPlatform.clearRect(0 - currentTransform.e, 0 - currentTransform.f, WIDTH, HEIGHT);
+        ctxPlatform.clearRect(0 - currentTransform.e, 0 - currentTransform.f, WIDTH, HEIGHT);
 
-    ctxPlatform.resetTransform();
+        ctxPlatform.resetTransform();
 
-    // Move camera after skater so that the skater is in the middle of the canvas all the time. 
-    // This is done by translating the canvas to the left since the player is going to the right.
+        // Move camera after skater so that the skater is in the middle of the canvas all the time. 
+        // This is done by translating the canvas to the left since the player is going to the right.
 
-    let translateX = skater.pos.x - WIDTH / 2;
-    let translateY = skater.pos.y - HEIGHT / 2;
+        let skaterOrgPos = {x: WIDTH / 2 - 10, y: HEIGHT / 2 - 16};
 
-    // Reset translation after a threshhold to avoid to big numbers. 
+        let translateX = skater.pos.x - skaterOrgPos.x;
+        let translateY = skater.pos.y - skaterOrgPos.y;
 
-    const threshHold = WIDTH ;
 
-    // Pull back all game objects with threshhold pixels to reset translation values
+        // Reset translation after a threshhold to avoid to big numbers. 
 
-    if (translateX >= threshHold) {
-        // Reset all objects positions 
-        for (const obj of gameObjects) {
-            obj.pos.x -= translateX;
-            obj.pos.y -= translateY;
-        }
+        const threshHold = WIDTH;
 
-        const latestPlatform: Platform = gameObjects.findLast(o => o instanceof Platform) as Platform;
+        // Pull back all game objects with threshhold pixels to reset translation values
 
-        generatePlatforms(latestPlatform.pos.x + 64, latestPlatform.pos.y + latestPlatform.endYdiff);
+        if (translateX  >= threshHold) {
+            // Reset all objects positions 
+            for (const obj of gameObjects) {
+                obj.pos.x -= translateX;
+                obj.pos.y -= translateY;
+            }
 
-        translateX = 0;
-        translateY = 0;
+            const latestPlatform: Platform = gameObjects.findLast(o => o instanceof Platform) as Platform;
+
+            generatePlatforms(latestPlatform.pos.x + 64, latestPlatform.pos.y + latestPlatform.endYdiff);
+
+            translateX = 0;
+            translateY = 0;
     }
 
-    ctxPlatform.translate(-translateX, -translateY); 
+    ctxPlatform.translate(-translateX,-translateY); 
 
-    // Draw objects
-    for (let obj of gameObjects) {
-        if(obj instanceof Platform) {
-            obj.draw(ctxPlatform);
-        }
+    drawBackground(ctxBackground);
+    drawPlatform(ctxPlatform);
+
+    } else {
+        
+        drawBackground(ctxBackground);
+        drawPlatform(ctxPlatform);
     }
 
-    // Draw objects
-    for (let obj of gameObjects) {
-        if(obj instanceof Obsticle) {
-            obj.draw(ctxPlatform);
-        }    
-    }
-    
-    skater.draw(ctxPlatform);
-
-    requestAnimationFrame((elapsedMillis) => play(skater, ctxPlatform, generatePlatforms, elapsedMillis));
+    requestAnimationFrame(() => play(skater, ctxPlatform, ctxBackground, generatePlatforms));
 
 }
 
 
-function update(elapsedMillis: number) {
+function update() {
+
+    let obj;
+
     for (let i = 0; i < gameObjects.length; ++i) {
+        obj = gameObjects[i];
         const collisions = getCollisions(gameObjects[i]);
-        gameObjects[i].update(elapsedMillis, collisions);
+        if(obj instanceof DynamicObject) obj.update(collisions);
     }
 }
 
+function drawPlatform(ctx: CanvasRenderingContext2D) {
 
-/**
- * Gets collisions between game object and all other objects
- */
+    const sortedGameObjects = gameObjects.sort((o1, o2) => {
+        if(o1 instanceof Platform) {
+            if(o2 instanceof Platform) return 0;
+            else return -1;
+        }
+
+        if(o1 instanceof Obsticle)
+            if(o2 instanceof Platform) return 1;
+            else if(o2 instanceof Obsticle) return 0;
+            else return -1;
+
+        return 1;
+    });
+
+    for (let obj of sortedGameObjects) {
+        obj.draw(ctx);
+    }
+
+    if(overlayColor) {
+        drawOverlay(ctx, overlayColor);
+    }
+
+
+}
+
+
 function getCollisions(obj: GameObject) {
 
     const collisions: Collision[] = [];
 
-    let otherObj ;
+    let otherObj;
 
     for (let i = 0; i < gameObjects.length; ++i) {
 
@@ -207,55 +234,51 @@ function createGeneratePlatformsFunction(): generatePlatformsFunction {
     type ObjectData = {
         width: number;
         height: number;
-        image: HTMLImageElement;
+        assetKey: string;
         endYDiff: number
     }
 
-    // All image assets 
+    const flat = "platform-flat";
 
-    const assetManager = AssetManager.getInstance();
+    const stairsSteep = "platform-stairs-steep";
 
-    const flat = assetManager.get("platform-flat");
+    const stairsShallow = "platform-stairs-shallow";
 
-    const stairsSteep = assetManager.get("platform-stairs-steep");
+    const stairsWallShallow = "wall-stairs-shallow";
+    const stairsWallShallowOpenBeginning = "wall-stairs-shallow-open-beginning";
+    const stairsWallShallowOpenEnd = "wall-stairs-shallow-open-end";
 
-    const stairsShallow = assetManager.get("platform-stairs-shallow");
+    const wallStairsSteep = "wall-stairs-steep";
+    const wallStairsSteepOpenEnd = "wall-stairs-steep-open-end";
+    const wallShortOpenEnds = "wall-short-open-ends";
+    const wallStairsSteepOpenBeginning = "wall-stairs-steep-open-beginning";
 
-    const stairsWallShallow = assetManager.get("wall-stairs-shallow");
-    const stairsWallShallowOpenBeginning = assetManager.get("wall-stairs-shallow-open-beginning");
-    const stairsWallShallowOpenEnd = assetManager.get("wall-stairs-shallow-open-end");
-
-    const wallStairsSteep = assetManager.get("wall-stairs-steep");
-    const wallStairsSteepOpenEnd = assetManager.get("wall-stairs-steep-open-end");
-    const wallShortOpenEnds = assetManager.get("wall-short-open-ends");
-    const wallStairsSteepOpenBeginning = assetManager.get("wall-stairs-steep-open-beginning");
-
-    const railShort = AssetManager.getInstance().get("rail-short");
-    const railLong = AssetManager.getInstance().get("rail-long");
-    const wallShort = AssetManager.getInstance().get("wall-short");
-    const wallLong = AssetManager.getInstance().get("wall-long");
+    const railShort = "rail-short";
+    const railLong = "rail-long";
+    const wallShort = "wall-short";
+    const wallLong = "wall-long";
 
 
     // Data for all objects: platforms, obsticles and rails 
 
     const obsticleObjectData: Map<ObsticleType, ObjectData & {connectedToPlatformYDiff: number}> = new Map([
-        [ObsticleType.RAIL_LONG, { width: 128, height: 7, endYDiff: 0, connectedToPlatformYDiff: 7, image: railLong }],
-        [ObsticleType.RAIL_SHORT, { width: 64, height: 7, endYDiff: 0, connectedToPlatformYDiff: 7, image: railShort }],
-        [ObsticleType.WALL_LONG, { width: 128, height: 13, endYDiff: 0, connectedToPlatformYDiff: 13, image: wallLong }],
-        [ObsticleType.WALL_SHORT, { width: 64, height: 13,  endYDiff: 0, connectedToPlatformYDiff: 13, image: wallShort }],
+        [ObsticleType.RAIL_LONG, { width: 128, height: 7, endYDiff: 0, connectedToPlatformYDiff: 7, assetKey: railLong }],
+        [ObsticleType.RAIL_SHORT, { width: 64, height: 7, endYDiff: 0, connectedToPlatformYDiff: 7, assetKey: railShort }],
+        [ObsticleType.WALL_LONG, { width: 128, height: 13, endYDiff: 0, connectedToPlatformYDiff: 13, assetKey: wallLong }],
+        [ObsticleType.WALL_SHORT, { width: 64, height: 13,  endYDiff: 0, connectedToPlatformYDiff: 13, assetKey: wallShort }],
         
-        [ObsticleType.WALL_STAIRS_SHALLOW, { width: 64, height: 48, endYDiff: 13, connectedToPlatformYDiff: 18, image: stairsWallShallow }],
-        [ObsticleType.WALL_STAIRS_SHALLOW_OPEN_BEGINNING, { width: 64, height: 48, endYDiff: 14, connectedToPlatformYDiff: 14, image: stairsWallShallowOpenBeginning }],
-        [ObsticleType.WALL_STAIRS_SHALLOW_OPEN_END, { width: 64, height: 48, endYDiff: 15, connectedToPlatformYDiff: 18, image: stairsWallShallowOpenEnd }],
-        [ObsticleType.WALL_STAIRS_STEEP, { width: 64, height: 40, endYDiff: 29, connectedToPlatformYDiff: 12, image: wallStairsSteep }],
-        [ObsticleType.WALL_STAIRS_STEEP_OPEN_END, { width: 64, height: 64, endYDiff: 29, connectedToPlatformYDiff: 12, image: wallStairsSteepOpenEnd }],
-        [ObsticleType.WALL_SHORT_OPEN_ENDS, { width: 64, height: 64, endYDiff: 1, connectedToPlatformYDiff: 14, image: wallShortOpenEnds }],
-        [ObsticleType.WALL_STAIRS_STEEP_OPEN_BEGINNING, { width: 64, height: 64, endYDiff: 29, connectedToPlatformYDiff:13, image: wallStairsSteepOpenBeginning }]]);
+        [ObsticleType.WALL_STAIRS_SHALLOW, { width: 64, height: 48, endYDiff: 13, connectedToPlatformYDiff: 18, assetKey: stairsWallShallow }],
+        [ObsticleType.WALL_STAIRS_SHALLOW_OPEN_BEGINNING, { width: 64, height: 48, endYDiff: 14, connectedToPlatformYDiff: 14, assetKey: stairsWallShallowOpenBeginning }],
+        [ObsticleType.WALL_STAIRS_SHALLOW_OPEN_END, { width: 64, height: 48, endYDiff: 15, connectedToPlatformYDiff: 18, assetKey: stairsWallShallowOpenEnd }],
+        [ObsticleType.WALL_STAIRS_STEEP, { width: 64, height: 40, endYDiff: 29, connectedToPlatformYDiff: 12, assetKey: wallStairsSteep }],
+        [ObsticleType.WALL_STAIRS_STEEP_OPEN_END, { width: 64, height: 64, endYDiff: 29, connectedToPlatformYDiff: 12, assetKey: wallStairsSteepOpenEnd }],
+        [ObsticleType.WALL_SHORT_OPEN_ENDS, { width: 64, height: 64, endYDiff: 1, connectedToPlatformYDiff: 14, assetKey: wallShortOpenEnds }],
+        [ObsticleType.WALL_STAIRS_STEEP_OPEN_BEGINNING, { width: 64, height: 64, endYDiff: 29, connectedToPlatformYDiff:13, assetKey: wallStairsSteepOpenBeginning }]]);
 
     const platformObjectData: Map<PlatformTile, ObjectData> = new Map([
-        [PlatformTile.FLAT, { width: 64, height: 144, endYDiff: 0, image: flat }],
-        [PlatformTile.STAIRS_SHALLOW, { width: 64, height: 64, endYDiff: 9, image: stairsShallow }],
-        [PlatformTile.STAIRS_STEEP, { width: 64, height: 64, endYDiff: 32, image: stairsSteep }]]);
+        [PlatformTile.FLAT, { width: 64, height: 144, endYDiff: 0, assetKey: flat }],
+        [PlatformTile.STAIRS_SHALLOW, { width: 64, height: 64, endYDiff: 9, assetKey: stairsShallow }],
+        [PlatformTile.STAIRS_STEEP, { width: 64, height: 64, endYDiff: 32, assetKey: stairsSteep }]]);
 
     const flatPlatformCombinations: { obstacle: ObsticleType, platformTile: PlatformTile }[][] = [
 
@@ -340,7 +363,7 @@ function createGeneratePlatformsFunction(): generatePlatformsFunction {
     ];
 
 
-    let currCombo: { obstacle: ObsticleType, platformTile: PlatformTile }[] = flatPlatformCombinations[0];
+    let currCombo: { obstacle: ObsticleType, platformTile: PlatformTile }[] = flatPlatformCombinations[1];
     let currComboIdx = 0;
     let currPlatform: { obstacle: ObsticleType, platformTile: PlatformTile } = { obstacle: ObsticleType.NONE, platformTile: PlatformTile.FLAT };
     let combinationsType: PlatformCombination = PlatformCombination.FLAT;
@@ -374,14 +397,14 @@ function createGeneratePlatformsFunction(): generatePlatformsFunction {
         const obsticleData = obsticleObjectData.get(currPlatform.obstacle as ObsticleType);
 
         if (obsticleData) {
-            const obj = new Obsticle({ x: currX, y: currY -  obsticleData.connectedToPlatformYDiff}, obsticleData.width, obsticleData.height, obsticleData.endYDiff, obsticleData.image);
+            const obj = new Obsticle({ x: currX, y: currY -  obsticleData.connectedToPlatformYDiff}, obsticleData.width, obsticleData.height, obsticleData.endYDiff, obsticleData.assetKey);
             gameObjects.push(obj);
         }
         // Create platform object
 
         const platformData = platformObjectData.get(currPlatform.platformTile)!;
 
-        const platform = new Platform({ x: currX, y: currY }, platformData.width, platformData.height, platformData.endYDiff, platformData.image);
+        const platform = new Platform({ x: currX, y: currY }, platformData.width, platformData.height, platformData.endYDiff, platformData.assetKey);
 
         gameObjects.push(platform);
 
@@ -399,7 +422,7 @@ function createGeneratePlatformsFunction(): generatePlatformsFunction {
 
         const numOfPlatforms = (startX === 0 ? WIDTH * 3 : WIDTH) / platformWidth;
 
-        let y = startY || 90 + 15;
+        let y = startY || HEIGHT / 2 + 16;
 
         for (let i = 0; i < numOfPlatforms; ++i) {
             y = next(startX + platformWidth * i, y);
@@ -412,19 +435,68 @@ function createGeneratePlatformsFunction(): generatePlatformsFunction {
 }
 
 
+function drawBackground(ctx: CanvasRenderingContext2D) {
+    const backgroundImage = AssetManager.getInstance().get("background");
+
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+    ctx.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT);
+
+    if(overlayColor) {
+        drawOverlay(ctx, overlayColor);
+    }
+}
+
+function drawOverlay(ctx: CanvasRenderingContext2D, overlayColor: string) {
+
+     // Get hue value from chosen hex string
+     const color = toHSLFromHex(overlayColor);
+            
+     const canvasImageData = ctx.getImageData(0, 0, WIDTH, HEIGHT);
+
+     let r= 0;
+     let g = 0;
+     let b = 0;
+     let hsl = {h: 0, s: 0, l: 0};
+     let rgb = {r, g, b};
+
+     // Update each pixel with new hue
+     for(let i = 0; i < canvasImageData.data.length; i += 4) {
+
+         r = canvasImageData.data[i];
+         g = canvasImageData.data[i + 1];
+         b = canvasImageData.data[i  + 2];
+
+         hsl = toHSLFromRGB({r, g, b});
+     
+         hsl.h = color.h;
+         hsl.s = color.s * 0.5;
+
+          rgb = toRGBFromHSL({h: hsl.h, s: hsl.s, l: hsl.l});
+
+         canvasImageData.data[i] = rgb.r;
+         canvasImageData.data[i + 1] = rgb.g;
+         canvasImageData.data[i + 2] = rgb.b;
+     }
+
+     ctx.putImageData(canvasImageData, 0 , 0);
+}
+
 async function init() {
 
     await initAssets();
 
     setKeyListeners();
 
-    const skater = new Skater({ x: 160, y: 90 }, { x: 0, y: 0 });
+    const skater = new Skater({ x: WIDTH / 2 - 10, y: HEIGHT / 2 - 16  }, { x: 0, y: 0 }, 20, 32);
 
     const canvasBackground: HTMLCanvasElement | null = document.querySelector("#canvas-background");
 
     const canvasPlatform: HTMLCanvasElement | null = document.querySelector("#canvas-main");
 
-    if (canvasBackground && canvasPlatform) {
+    const inputColor: HTMLInputElement | null = document.querySelector("#input-color");
+
+    if (canvasBackground && canvasPlatform && inputColor) {
 
         const ctxBackground = canvasBackground.getContext("2d");
 
@@ -432,17 +504,28 @@ async function init() {
 
         if (ctxBackground && ctxPlatform) {
 
+            inputColor.addEventListener("change", (e) => {
+           
+                if((e.target as HTMLInputElement).value) overlayColor = (e.target as HTMLInputElement).value;
+            });
+
+            canvasPlatform.addEventListener("click", () => {
+                isPlaying = !isPlaying;
+            })
+
             const generatePlatforms = createGeneratePlatformsFunction();
 
-            const backgroundImage = AssetManager.getInstance().get("background");
-
-            ctxBackground.drawImage(backgroundImage, 0, 0, 320, 180);
-
+            drawBackground(ctxBackground);
+        
             gameObjects.push(skater);
+
+            ctx = ctxPlatform;
 
             generatePlatforms();
 
-            return { ctxPlatform, skater, generatePlatforms: generatePlatforms };
+            drawPlatform(ctxPlatform);
+
+            return { ctxPlatform, ctxBackground, skater, generatePlatforms: generatePlatforms };
 
         }
     }
@@ -450,7 +533,8 @@ async function init() {
     throw new Error("Failed to initialize canvas");
 }
 
-init().then(({ ctxPlatform, skater, generatePlatforms }) => {
-    ctx = ctxPlatform;
-    play(skater, ctxPlatform, generatePlatforms);
+
+init().then(({ ctxPlatform, ctxBackground, skater, generatePlatforms }) => {
+
+    play(skater, ctxPlatform, ctxBackground, generatePlatforms);
 }).catch(error => console.error(error));
