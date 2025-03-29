@@ -7,6 +7,7 @@ import { Obsticle } from "./Obsticle";
 import { Collision, getCollision } from "./collision";
 import { toHSLFromHex, toHSLFromRGB, toRGBFromHSL } from "./color";
 
+
  let isPlaying = false;
 
 export let keysDown = new Set();
@@ -149,27 +150,29 @@ function getCollisions(obj: GameObject) {
 
 async function initAssets() {
 
+    const baseUrl = import.meta.env.BASE_URL;
+
     const assetManager = AssetManager.getInstance();
 
-    assetManager.register("background", "/background.png");
-    assetManager.register("platform-flat", "/flat.png");
-    assetManager.register("platform-stairs-steep", "/stairs-steep.png");
-    assetManager.register("platform-stairs-shallow", "/stairs-shallow.png");
-    assetManager.register("wall-stairs-shallow", "/wall-stairs-shallow.png");
-    assetManager.register("wall-stairs-shallow-open-beginning", "/wall-stairs-shallow-open-beginning.png");
-    assetManager.register("wall-stairs-shallow-open-end", "/wall-stairs-shallow-open-end.png");
-    assetManager.register("wall-stairs-steep", "/wall-stairs-steep.png");
-    assetManager.register("wall-stairs-steep-open-end", "/wall-stairs-steep-open-end.png");
-    assetManager.register("wall-short-open-ends", "/wall-short-open-ends.png");
-    assetManager.register("wall-stairs-steep-open-beginning", "/wall-stairs-steep-open-beginning.png");
+    assetManager.register("background", `${baseUrl}/background.png`);
+    assetManager.register("platform-flat", `${baseUrl}/flat.png`);
+    assetManager.register("platform-stairs-steep", `${baseUrl}/stairs-steep.png`);
+    assetManager.register("platform-stairs-shallow", `${baseUrl}/stairs-shallow.png`);
+    assetManager.register("wall-stairs-shallow", `${baseUrl}/wall-stairs-shallow.png`);
+    assetManager.register("wall-stairs-shallow-open-beginning", `${baseUrl}/wall-stairs-shallow-open-beginning.png`);
+    assetManager.register("wall-stairs-shallow-open-end", `${baseUrl}/wall-stairs-shallow-open-end.png`);
+    assetManager.register("wall-stairs-steep", `${baseUrl}/wall-stairs-steep.png`);
+    assetManager.register("wall-stairs-steep-open-end", `${baseUrl}/wall-stairs-steep-open-end.png`);
+    assetManager.register("wall-short-open-ends", `${baseUrl}/wall-short-open-ends.png`);
+    assetManager.register("wall-stairs-steep-open-beginning", `${baseUrl}/wall-stairs-steep-open-beginning.png`);
 
-    assetManager.register("wall-long", "/wall-long.png");
-    assetManager.register("rail-short", "/rail-short.png");
-    assetManager.register("rail-long", "/rail-long.png");
-    assetManager.register("wall-short", "/wall-short.png");
-    assetManager.register("wall-long", "/wall-long.png");
+    assetManager.register("wall-long", `${baseUrl}/wall-long.png`);
+    assetManager.register("rail-short", `${baseUrl}/rail-short.png`);
+    assetManager.register("rail-long", `${baseUrl}/rail-long.png`);
+    assetManager.register("wall-short", `${baseUrl}/wall-short.png`);
+    assetManager.register("wall-long", `${baseUrl}/wall-long.png`);
 
-    assetManager.register("skater-cruise", "/skater-cruise.png");
+    assetManager.register("skater-cruise", `${baseUrl}/skater-cruise.png`);
 
     for(let i = 0; i < 6; ++i) {
         assetManager.register(`skater-jump${i + 1}`, `/skater-jump${i + 1}.png`)
