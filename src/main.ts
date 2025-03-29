@@ -7,14 +7,13 @@ import { Obsticle } from "./Obsticle";
 import { Collision, getCollision } from "./collision";
 import { toHSLFromHex, toHSLFromRGB, toRGBFromHSL } from "./color";
 
-
- let isPlaying = false;
+let isPlaying = false;
 
 export let keysDown = new Set();
 
 let listenToKeys = new Set([" ", "a", "d"]);
 
-let overlayColor: string | null = null; 
+let overlayColor: string = "#655b79"; 
 
 export let gameObjects: GameObject[] = [];
 
@@ -154,28 +153,28 @@ async function initAssets() {
 
     const assetManager = AssetManager.getInstance();
 
-    assetManager.register("background", `${baseUrl}/background.png`);
-    assetManager.register("platform-flat", `${baseUrl}/flat.png`);
-    assetManager.register("platform-stairs-steep", `${baseUrl}/stairs-steep.png`);
-    assetManager.register("platform-stairs-shallow", `${baseUrl}/stairs-shallow.png`);
-    assetManager.register("wall-stairs-shallow", `${baseUrl}/wall-stairs-shallow.png`);
-    assetManager.register("wall-stairs-shallow-open-beginning", `${baseUrl}/wall-stairs-shallow-open-beginning.png`);
-    assetManager.register("wall-stairs-shallow-open-end", `${baseUrl}/wall-stairs-shallow-open-end.png`);
-    assetManager.register("wall-stairs-steep", `${baseUrl}/wall-stairs-steep.png`);
-    assetManager.register("wall-stairs-steep-open-end", `${baseUrl}/wall-stairs-steep-open-end.png`);
-    assetManager.register("wall-short-open-ends", `${baseUrl}/wall-short-open-ends.png`);
-    assetManager.register("wall-stairs-steep-open-beginning", `${baseUrl}/wall-stairs-steep-open-beginning.png`);
+    assetManager.register("background", `${baseUrl}background.png`);
+    assetManager.register("platform-flat", `${baseUrl}flat.png`);
+    assetManager.register("platform-stairs-steep", `${baseUrl}stairs-steep.png`);
+    assetManager.register("platform-stairs-shallow", `${baseUrl}stairs-shallow.png`);
+    assetManager.register("wall-stairs-shallow", `${baseUrl}wall-stairs-shallow.png`);
+    assetManager.register("wall-stairs-shallow-open-beginning", `${baseUrl}wall-stairs-shallow-open-beginning.png`);
+    assetManager.register("wall-stairs-shallow-open-end", `${baseUrl}wall-stairs-shallow-open-end.png`);
+    assetManager.register("wall-stairs-steep", `${baseUrl}wall-stairs-steep.png`);
+    assetManager.register("wall-stairs-steep-open-end", `${baseUrl}wall-stairs-steep-open-end.png`);
+    assetManager.register("wall-short-open-ends", `${baseUrl}wall-short-open-ends.png`);
+    assetManager.register("wall-stairs-steep-open-beginning", `${baseUrl}wall-stairs-steep-open-beginning.png`);
 
-    assetManager.register("wall-long", `${baseUrl}/wall-long.png`);
-    assetManager.register("rail-short", `${baseUrl}/rail-short.png`);
-    assetManager.register("rail-long", `${baseUrl}/rail-long.png`);
-    assetManager.register("wall-short", `${baseUrl}/wall-short.png`);
-    assetManager.register("wall-long", `${baseUrl}/wall-long.png`);
+    assetManager.register("wall-long", `${baseUrl}wall-long.png`);
+    assetManager.register("rail-short", `${baseUrl}rail-short.png`);
+    assetManager.register("rail-long", `${baseUrl}rail-long.png`);
+    assetManager.register("wall-short", `${baseUrl}wall-short.png`);
+    assetManager.register("wall-long", `${baseUrl}wall-long.png`);
 
-    assetManager.register("skater-cruise", `${baseUrl}/skater-cruise.png`);
+    assetManager.register("skater-cruise", `${baseUrl}skater-cruise.png`);
 
     for(let i = 0; i < 6; ++i) {
-        assetManager.register(`skater-jump${i + 1}`, `/skater-jump${i + 1}.png`)
+        assetManager.register(`skater-jump${i + 1}`, `${baseUrl}skater-jump${i + 1}.png`)
     }
 
     await assetManager.load();
@@ -473,7 +472,7 @@ function drawOverlay(ctx: CanvasRenderingContext2D, overlayColor: string) {
          hsl = toHSLFromRGB({r, g, b});
      
          hsl.h = color.h;
-         hsl.s = color.s * 0.5;
+         hsl.s = color.s;
 
           rgb = toRGBFromHSL({h: hsl.h, s: hsl.s, l: hsl.l});
 
@@ -482,7 +481,7 @@ function drawOverlay(ctx: CanvasRenderingContext2D, overlayColor: string) {
          canvasImageData.data[i + 2] = rgb.b;
      }
 
-     ctx.putImageData(canvasImageData, 0 , 0);
+     ctx.putImageData(canvasImageData,0 , 0);
 }
 
 async function init() {
@@ -499,7 +498,9 @@ async function init() {
 
     const inputColor: HTMLInputElement | null = document.querySelector("#input-color");
 
-    if (canvasBackground && canvasPlatform && inputColor) {
+    const app: HTMLBodyElement | null = document.querySelector("#app");
+
+    if (canvasBackground && canvasPlatform && inputColor && app) {
 
         const ctxBackground = canvasBackground.getContext("2d");
 
@@ -512,9 +513,13 @@ async function init() {
                 if((e.target as HTMLInputElement).value) overlayColor = (e.target as HTMLInputElement).value;
             });
 
-            canvasPlatform.addEventListener("click", () => {
+            inputColor.value = overlayColor;
+
+            app.addEventListener("click", () => {
                 isPlaying = !isPlaying;
             })
+
+
 
             const generatePlatforms = createGeneratePlatformsFunction();
 
