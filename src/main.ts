@@ -5,6 +5,7 @@ import AssetManager from "./AssetManager";
 import { Obsticle } from "./Obsticle";
 import { Collision, getCollision } from "./collision";
 import { toHSLFromHex, toHSLFromRGB, toRGBFromHSL } from "./color";
+import AudioPlayer from "./AudioPlayer";
 
 let isPlaying = false;
 let inputColorIsOpen = false;
@@ -34,6 +35,14 @@ function play(
     generatePlatforms: generatePlatformsFunction) {
 
     if(isPlaying) {
+        const audioplayer = AudioPlayer.getInstance();
+
+        if(!audioplayer.isOn()) {
+            audioplayer.onOffSwitch();
+        }
+
+        audioplayer.playAudio("background", true);
+
         ctxThumbnail.clearRect(0, 0, WIDTH, HEIGHT);
         
         update();
@@ -80,6 +89,14 @@ function play(
     drawPlatform(ctxPlatform);
 
     } else {
+
+        const audioplayer = AudioPlayer.getInstance();
+        if(audioplayer.isOn()) {
+            audioplayer.onOffSwitch();
+            audioplayer.stopAudio("background");
+        }
+
+
 
         ctxThumbnail.drawImage(AssetManager.getInstance().get("thumbnail"), 0, 0, WIDTH, HEIGHT);
         drawOverlay(ctxThumbnail, overlayColor);
@@ -181,6 +198,16 @@ async function initAssets() {
     }
 
     await assetManager.load();
+
+    const audioplayer = AudioPlayer.getInstance();
+
+    await audioplayer.createAudio("background", `${baseUrl}audio/background.mp3`);
+    await audioplayer.createAudio("cruising", `${baseUrl}audio/cruising.mp3`);
+    await audioplayer.createAudio("sliding", `${baseUrl}audio/sliding.mp3`);
+    await audioplayer.createAudio("jump", `${baseUrl}audio/jump.wav`);
+    await audioplayer.createAudio("land", `${baseUrl}audio/land.wav`);
+
+    audioplayer.setVolume(1);
 }
 
 
@@ -487,11 +514,11 @@ async function init() {
 
     if (canvasBackground && canvasPlatform && inputColor && app && canvasThumbnail ) {
 
-        const ctxBackground = canvasBackground.getContext("2d");
+        const ctxBackground = canvasBackground.getContext("2d",{ willReadFrequently: true });
 
-        const ctxPlatform = canvasPlatform.getContext("2d");
+        const ctxPlatform = canvasPlatform.getContext("2d", { willReadFrequently: true });
 
-        const ctxThumbnail = canvasThumbnail.getContext("2d");
+        const ctxThumbnail = canvasThumbnail.getContext("2d", { willReadFrequently: true });
 
         if (ctxBackground && ctxPlatform && ctxThumbnail) {
             inputColor.addEventListener("click", (e) => {

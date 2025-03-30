@@ -5,6 +5,7 @@ import { Obsticle } from "./Obsticle";
 import { Platform } from "./Platform";
 import { DynamicObject, GameObject, Point } from "./types";
 import "./array";
+import AudioPlayer from "./AudioPlayer";
 
 interface SkaterState {
     update(skater: Skater): void;
@@ -26,8 +27,13 @@ class JumpingState implements SkaterState {
     }
 
     update(skater: Skater): void {
+ 
+        if(this.jumpFrame === 0) {
+            AudioPlayer.getInstance().playAudio("jump");
+        }
 
         if (this.jumpFrame > 0 && skater.isBlockedDown) {
+            AudioPlayer.getInstance().stopAudio("jump");
             skater.state = new CruisingState(2);
             skater.vel.y = 0;
             return;
@@ -61,23 +67,47 @@ class CruisingState implements SkaterState {
 
     update(skater: Skater): void {
         skater.vel.x = this.velX;
+        const audioplayer = AudioPlayer.getInstance();
 
-            if(skater.isBlockedDown) {
-                skater.vel.y = 0;
-            } else {
-                const doTrick = Math.random() > 0.75 && !skater.closeToState.approachingStairs;
-                if(doTrick) {
-                    const trick = JumpingState.obsticleTricks.random();
-                    skater.state = new JumpingState({y: -15, x: 3}, trick);
-                }else {
-                    skater.vel.y = 2;
+        if(skater.isBlockedDown) {
+            if(skater.isOnPlatform) {
+                if(skater.isCloseToObsticle(gameObjects)) {
+                    audioplayer.stopAudio("cruising");
+                    audioplayer.stopAudio("sliding");
+                    skater.state = new JumpingState({y: -15, x: 3}, JumpingState.obsticleTricks.random());
+
+                } else if(skater.isCloseToStairs(gameObjects)) {
+                    audioplayer.stopAudio("cruising");
+                    audioplayer.stopAudio("sliding");
+                    skater.state = new JumpingState({y: -15, x: 5}, JumpingState.stairsTricks.random());
+                } else {
+                    audioplayer.stopAudio("sliding");
+                    audioplayer.playAudio("cruising", true);
                 }
+
+            } else {
+                audioplayer.stopAudio("cruising");
+                audioplayer.playAudio("sliding", true);
             }
 
-            skater.pos.x += skater.vel.x;
-            skater.pos.y += skater.vel.y;
+            skater.vel.y = 0;
 
-            if(!skater.animations.isPlaying("skater-cruise")) skater.animations.play("skater-cruise");
+        } else {
+            audioplayer.stopAudio("cruising");
+            audioplayer.stopAudio("sliding");
+            const doTrick = Math.random() > 0.75 && !skater.isCloseToStairs(gameObjects, 128);
+            if(doTrick) {
+                const trick = JumpingState.obsticleTricks.random();
+                skater.state = new JumpingState({y: -15, x: 3}, trick);
+            }else {
+                skater.vel.y = 2;
+            }
+        }
+
+        skater.pos.x += skater.vel.x;
+        skater.pos.y += skater.vel.y;
+
+        if(!skater.animations.isPlaying("skater-cruise")) skater.animations.play("skater-cruise");
     }
 }
 
@@ -85,25 +115,16 @@ export class Skater extends DynamicObject {
 
     state: SkaterState;
     isBlockedDown: boolean;
-
-    closeToState: {
-        closeToStairs: boolean;
-        closeToObsticle: boolean;
-        approachingStairs: boolean;
-        approachingObsticle: boolean;
-    }
+    isOnPlatform: boolean;
+    isOnObsticle: boolean;
    
     constructor(pos: Point, vel: Point, width: number, height: number) {
         super(pos, vel, width, height);
 
         this.state = new CruisingState(2);
         this.isBlockedDown = false;
-        this.closeToState = {
-            closeToObsticle: false,
-            closeToStairs: false,
-            approachingObsticle: false,
-            approachingStairs: false,
-        };
+        this.isOnPlatform = false;
+        this.isOnObsticle = false;
 
         for(let i = 0; i < 6; ++i) {
             this.animations.create(`skater-jump${i + 1}`, {loop: true, frames: `skater-jump${i + 1}`, numberOfFrames: 4});
@@ -115,10 +136,21 @@ export class Skater extends DynamicObject {
     }
 
     update(collisions: Collision[]): void {
+        this.updateStateBasedOnCollisions(collisions);
+        this.state.update(this);
+        this.animations.update();
+    }
 
+    isJumping(){
+        return this.state instanceof JumpingState;
+    }
+
+    private updateStateBasedOnCollisions(collisions: Collision[]) {
         this.isBlockedDown = false;
 
-        let standingOnObsticle = false;
+        this.isOnObsticle = false;
+
+        this.isOnPlatform = false;
 
         let isConsideringObsticle = true;
         
@@ -135,50 +167,16 @@ export class Skater extends DynamicObject {
         for (const c of collisionsSorted) {
             if( isConsideringObsticle || !(c.obj instanceof Obsticle)) {
                 this.isBlockedDown = true;
-                standingOnObsticle = c.obj instanceof Obsticle;
+                this.isOnObsticle = c.obj instanceof Obsticle;
+                this.isOnPlatform = c.obj instanceof Platform;
                 const y = (c.obj as (Obsticle | Platform)).y(this);
                 this.pos.y =  y - this.height;
             }
         }
 
-        // Check if close to obsticle and should jump onto it
-
-        if(!standingOnObsticle && !this.isJumping()) {
-
-            this.closeToState.closeToObsticle = this.isCloseToObsticle(gameObjects);
-            this.closeToState.closeToStairs = this.isCloseToStairs(gameObjects);
-            this.closeToState.approachingObsticle = this.isApproachingObsticle(gameObjects);
-            this.closeToState.approachingStairs = this.isApproachingStairs(gameObjects);
-
-            if(this.closeToState.closeToObsticle) {
-                this.state = new JumpingState({y: -15, x: 3}, JumpingState.obsticleTricks.random());
-            } else if(this.closeToState.closeToStairs) {
-                this.state = new JumpingState({y: -15, x: 5}, JumpingState.stairsTricks.random());
-            } else if(this.closeToState.approachingStairs && !this.closeToState.approachingObsticle) {
-                 this.state = new CruisingState(2);
-            } 
-
-        } else   {
-     
-        } 
-
-        this.state.update(this);
-        this.animations.update();
     }
 
-    private isJumping(){
-        return this.state instanceof JumpingState;
-    }
-
-    private isApproachingObsticle(gameObjects: GameObject[]): boolean {
-        return this.isCloseToObsticle(gameObjects, 128);
-    }
-    
-    private isApproachingStairs(gameObjects: GameObject[]): boolean {
-       return this.isCloseToStairs(gameObjects, 128);
-    }
-
-     isCloseToStairs(gameObjects: GameObject[], diff: number = 4) {
+    isCloseToStairs(gameObjects: GameObject[], diff: number = 4) {
         let minX: number = 10000;
 
         const skaterTranslatedX = WIDTH/2;
@@ -197,7 +195,7 @@ export class Skater extends DynamicObject {
         return diffX < diff;
     }
 
-    private isCloseToObsticle(gameObjects: GameObject[], diff: number = 32): boolean {
+    isCloseToObsticle(gameObjects: GameObject[], diff: number = 32): boolean {
 
         let minX: number = 10000;
   
