@@ -26,16 +26,23 @@ export function getTranslatedPos(pos: {x: number, y: number}) {
     return {x: pos.x + currentTransform.e, y: pos.y + currentTransform.f};
 }
 
-function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, ctxBackground: CanvasRenderingContext2D, generatePlatforms: generatePlatformsFunction) {
-
-    const currentTransform = ctxPlatform.getTransform();
-
-    ctxPlatform.clearRect(0 - currentTransform.e, 0 - currentTransform.f, WIDTH, HEIGHT);
-
-    ctxPlatform.resetTransform();
+function play(
+    skater: Skater, 
+    ctxPlatform: CanvasRenderingContext2D, 
+    ctxBackground: CanvasRenderingContext2D, 
+    ctxThumbnail: CanvasRenderingContext2D, 
+    generatePlatforms: generatePlatformsFunction) {
 
     if(isPlaying) {
+        ctxThumbnail.clearRect(0, 0, WIDTH, HEIGHT);
+        
         update();
+
+        const currentTransform = ctxPlatform.getTransform();
+
+        ctxPlatform.clearRect(0 - currentTransform.e, 0 - currentTransform.f, WIDTH, HEIGHT);
+    
+        ctxPlatform.resetTransform();
 
         // Move camera after skater so that the skater is in the middle of the canvas all the time. 
         // This is done by translating the canvas to the left since the player is going to the right.
@@ -73,13 +80,13 @@ function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, ctxBackgrou
     drawPlatform(ctxPlatform);
 
     } else {
-        ctxBackground.clearRect(0, 0, WIDTH, HEIGHT);
-        ctxPlatform.drawImage(AssetManager.getInstance().get("thumbnail"), 0, 0, WIDTH, HEIGHT);
-        drawOverlay(ctxPlatform, overlayColor);
+
+        ctxThumbnail.drawImage(AssetManager.getInstance().get("thumbnail"), 0, 0, WIDTH, HEIGHT);
+        drawOverlay(ctxThumbnail, overlayColor);
      
     }
 
-    requestAnimationFrame(() => play(skater, ctxPlatform, ctxBackground, generatePlatforms));
+    requestAnimationFrame(() => play(skater, ctxPlatform, ctxBackground, ctxThumbnail, generatePlatforms));
 
 }
 
@@ -472,17 +479,21 @@ async function init() {
 
     const canvasPlatform: HTMLCanvasElement | null = document.querySelector("#canvas-main");
 
+    const canvasThumbnail: HTMLCanvasElement | null = document.querySelector("#canvas-thumbnail");
+
     const inputColor: HTMLInputElement | null = document.querySelector("#input-color");
 
     const app = document.querySelector("#app"); 
 
-    if (canvasBackground && canvasPlatform && inputColor && app) {
+    if (canvasBackground && canvasPlatform && inputColor && app && canvasThumbnail ) {
 
         const ctxBackground = canvasBackground.getContext("2d");
 
         const ctxPlatform = canvasPlatform.getContext("2d");
 
-        if (ctxBackground && ctxPlatform) {
+        const ctxThumbnail = canvasThumbnail.getContext("2d");
+
+        if (ctxBackground && ctxPlatform && ctxThumbnail) {
             inputColor.addEventListener("click", (e) => {
                 e.stopPropagation();
 
@@ -508,18 +519,15 @@ async function init() {
 
             ctxPlatform.imageSmoothingEnabled = false;
             ctxBackground.imageSmoothingEnabled = false;
+            ctxThumbnail.imageSmoothingEnabled = false;
 
-            drawBackground(ctxBackground);
-        
             gameObjects.push(skater);
 
             ctx = ctxPlatform;
 
             generatePlatforms();
 
-            drawPlatform(ctxPlatform);
-
-            return { ctxPlatform, ctxBackground, skater, generatePlatforms: generatePlatforms };
+            return { ctxThumbnail, ctxPlatform, ctxBackground, skater, generatePlatforms: generatePlatforms };
 
         }
     }
@@ -528,6 +536,6 @@ async function init() {
 }
 
 
-init().then(({ ctxPlatform, ctxBackground, skater, generatePlatforms }) => {
-    play(skater, ctxPlatform, ctxBackground, generatePlatforms);
+init().then(({ ctxPlatform, ctxBackground, ctxThumbnail, skater, generatePlatforms }) => {
+    play(skater, ctxPlatform, ctxBackground, ctxThumbnail, generatePlatforms);
 }).catch(error => console.error(error));
