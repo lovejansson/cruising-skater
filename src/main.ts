@@ -7,6 +7,7 @@ import { Collision, getCollision } from "./collision";
 import { toHSLFromHex, toHSLFromRGB, toRGBFromHSL } from "./color";
 
 let isPlaying = false;
+let inputColorIsOpen = false;
 
 // export let keys = new KeyListener(["a", "s", " "]);
 
@@ -27,14 +28,14 @@ export function getTranslatedPos(pos: {x: number, y: number}) {
 
 function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, ctxBackground: CanvasRenderingContext2D, generatePlatforms: generatePlatformsFunction) {
 
+    const currentTransform = ctxPlatform.getTransform();
+
+    ctxPlatform.clearRect(0 - currentTransform.e, 0 - currentTransform.f, WIDTH, HEIGHT);
+
+    ctxPlatform.resetTransform();
+
     if(isPlaying) {
         update();
-
-        const currentTransform = ctxPlatform.getTransform();
-
-        ctxPlatform.clearRect(0 - currentTransform.e, 0 - currentTransform.f, WIDTH, HEIGHT);
-
-        ctxPlatform.resetTransform();
 
         // Move camera after skater so that the skater is in the middle of the canvas all the time. 
         // This is done by translating the canvas to the left since the player is going to the right.
@@ -73,12 +74,9 @@ function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, ctxBackgrou
 
     } else {
         ctxBackground.clearRect(0, 0, WIDTH, HEIGHT);
-        ctxPlatform.clearRect(0, 0, WIDTH, HEIGHT);
         ctxPlatform.drawImage(AssetManager.getInstance().get("thumbnail"), 0, 0, WIDTH, HEIGHT);
-        
-        if(overlayColor) {
-            drawOverlay(ctxPlatform, overlayColor);
-        }
+        drawOverlay(ctxPlatform, overlayColor);
+     
     }
 
     requestAnimationFrame(() => play(skater, ctxPlatform, ctxBackground, generatePlatforms));
@@ -117,11 +115,7 @@ function drawPlatform(ctx: CanvasRenderingContext2D) {
         obj.draw(ctx);
     }
 
-    if(overlayColor) {
-        drawOverlay(ctx, overlayColor);
-    }
-
-
+    drawOverlay(ctx, overlayColor);
 }
 
 
@@ -153,7 +147,7 @@ async function initAssets() {
     const baseUrl = import.meta.env.BASE_URL;
 
     const assetManager = AssetManager.getInstance();
-    assetManager.register("thumbnail", `${baseUrl}images/thumbnail.png`);
+
     assetManager.register("background", `${baseUrl}images/background.png`);
     assetManager.register("platform-flat", `${baseUrl}images/flat.png`);
     assetManager.register("platform-stairs-steep", `${baseUrl}images/stairs-steep.png`);
@@ -173,6 +167,7 @@ async function initAssets() {
     assetManager.register("wall-long", `${baseUrl}images/wall-long.png`);
 
     assetManager.register("skater-cruise", `${baseUrl}images/skater-cruise.png`);
+    assetManager.register("thumbnail", `${baseUrl}images/thumbnail-grey.png`);
 
     for(let i = 0; i < 6; ++i) {
         assetManager.register(`skater-jump${i + 1}`, `${baseUrl}images/skater-jump${i + 1}.png`)
@@ -428,9 +423,8 @@ function drawBackground(ctx: CanvasRenderingContext2D) {
 
     ctx.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT);
 
-    if(overlayColor) {
-        drawOverlay(ctx, overlayColor);
-    }
+    drawOverlay(ctx, overlayColor);
+
 }
 
 function drawOverlay(ctx: CanvasRenderingContext2D, overlayColor: string) {
@@ -489,19 +483,31 @@ async function init() {
         const ctxPlatform = canvasPlatform.getContext("2d");
 
         if (ctxBackground && ctxPlatform) {
+            inputColor.addEventListener("click", (e) => {
+                e.stopPropagation();
+
+                inputColorIsOpen = true;
+            })
 
             inputColor.addEventListener("change", (e) => {
-           
                 if((e.target as HTMLInputElement).value) overlayColor = (e.target as HTMLInputElement).value;
             });
 
             inputColor.value = overlayColor;
 
             app.addEventListener("click", () => {
-                isPlaying = !isPlaying;
+                if(inputColorIsOpen) inputColorIsOpen = false;
+                else {
+                    isPlaying = !isPlaying;
+                    inputColor.classList.toggle("display-none");
+                }
+
             });
 
             const generatePlatforms = createGeneratePlatformsFunction();
+
+            ctxPlatform.imageSmoothingEnabled = false;
+            ctxBackground.imageSmoothingEnabled = false;
 
             drawBackground(ctxBackground);
         
