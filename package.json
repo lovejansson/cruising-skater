@@ -1,5 +1,5 @@
 {
-  "name": "endless-skater",
+  "name": "cruising",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,7 +13,6 @@
     "vite": "^6.0.3"
   },
   "dependencies": {
-    "@types/matter-js": "^0.19.8",
-    "endless-skater": "file:"
+    "cruising": "file:"
   }
 }

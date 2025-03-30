@@ -1,6 +1,5 @@
 import { Platform } from "./Platform";
 import { Skater } from "./Skater";
-import "./style.css"
 import {  DynamicObject, GameObject } from "./types";
 import AssetManager from "./AssetManager";
 import { Obsticle } from "./Obsticle";
@@ -9,9 +8,7 @@ import { toHSLFromHex, toHSLFromRGB, toRGBFromHSL } from "./color";
 
 let isPlaying = false;
 
-export let keysDown = new Set();
-
-let listenToKeys = new Set([" ", "a", "d"]);
+// export let keys = new KeyListener(["a", "s", " "]);
 
 let overlayColor: string = "#655b79"; 
 
@@ -75,9 +72,13 @@ function play(skater: Skater, ctxPlatform: CanvasRenderingContext2D, ctxBackgrou
     drawPlatform(ctxPlatform);
 
     } else {
+        ctxBackground.clearRect(0, 0, WIDTH, HEIGHT);
+        ctxPlatform.clearRect(0, 0, WIDTH, HEIGHT);
+        ctxPlatform.drawImage(AssetManager.getInstance().get("thumbnail"), 0, 0, WIDTH, HEIGHT);
         
-        drawBackground(ctxBackground);
-        drawPlatform(ctxPlatform);
+        if(overlayColor) {
+            drawOverlay(ctxPlatform, overlayColor);
+        }
     }
 
     requestAnimationFrame(() => play(skater, ctxPlatform, ctxBackground, generatePlatforms));
@@ -152,49 +153,32 @@ async function initAssets() {
     const baseUrl = import.meta.env.BASE_URL;
 
     const assetManager = AssetManager.getInstance();
+    assetManager.register("thumbnail", `${baseUrl}images/thumbnail.png`);
+    assetManager.register("background", `${baseUrl}images/background.png`);
+    assetManager.register("platform-flat", `${baseUrl}images/flat.png`);
+    assetManager.register("platform-stairs-steep", `${baseUrl}images/stairs-steep.png`);
+    assetManager.register("platform-stairs-shallow", `${baseUrl}images/stairs-shallow.png`);
+    assetManager.register("wall-stairs-shallow", `${baseUrl}images/wall-stairs-shallow.png`);
+    assetManager.register("wall-stairs-shallow-open-beginning", `${baseUrl}images/wall-stairs-shallow-open-beginning.png`);
+    assetManager.register("wall-stairs-shallow-open-end", `${baseUrl}images/wall-stairs-shallow-open-end.png`);
+    assetManager.register("wall-stairs-steep", `${baseUrl}images/wall-stairs-steep.png`);
+    assetManager.register("wall-stairs-steep-open-end", `${baseUrl}images/wall-stairs-steep-open-end.png`);
+    assetManager.register("wall-short-open-ends", `${baseUrl}images/wall-short-open-ends.png`);
+    assetManager.register("wall-stairs-steep-open-beginning", `${baseUrl}images/wall-stairs-steep-open-beginning.png`);
 
-    assetManager.register("background", `${baseUrl}background.png`);
-    assetManager.register("platform-flat", `${baseUrl}flat.png`);
-    assetManager.register("platform-stairs-steep", `${baseUrl}stairs-steep.png`);
-    assetManager.register("platform-stairs-shallow", `${baseUrl}stairs-shallow.png`);
-    assetManager.register("wall-stairs-shallow", `${baseUrl}wall-stairs-shallow.png`);
-    assetManager.register("wall-stairs-shallow-open-beginning", `${baseUrl}wall-stairs-shallow-open-beginning.png`);
-    assetManager.register("wall-stairs-shallow-open-end", `${baseUrl}wall-stairs-shallow-open-end.png`);
-    assetManager.register("wall-stairs-steep", `${baseUrl}wall-stairs-steep.png`);
-    assetManager.register("wall-stairs-steep-open-end", `${baseUrl}wall-stairs-steep-open-end.png`);
-    assetManager.register("wall-short-open-ends", `${baseUrl}wall-short-open-ends.png`);
-    assetManager.register("wall-stairs-steep-open-beginning", `${baseUrl}wall-stairs-steep-open-beginning.png`);
+    assetManager.register("wall-long", `${baseUrl}images/wall-long.png`);
+    assetManager.register("rail-short", `${baseUrl}images/rail-short.png`);
+    assetManager.register("rail-long", `${baseUrl}images/rail-long.png`);
+    assetManager.register("wall-short", `${baseUrl}images/wall-short.png`);
+    assetManager.register("wall-long", `${baseUrl}images/wall-long.png`);
 
-    assetManager.register("wall-long", `${baseUrl}wall-long.png`);
-    assetManager.register("rail-short", `${baseUrl}rail-short.png`);
-    assetManager.register("rail-long", `${baseUrl}rail-long.png`);
-    assetManager.register("wall-short", `${baseUrl}wall-short.png`);
-    assetManager.register("wall-long", `${baseUrl}wall-long.png`);
-
-    assetManager.register("skater-cruise", `${baseUrl}skater-cruise.png`);
+    assetManager.register("skater-cruise", `${baseUrl}images/skater-cruise.png`);
 
     for(let i = 0; i < 6; ++i) {
-        assetManager.register(`skater-jump${i + 1}`, `${baseUrl}skater-jump${i + 1}.png`)
+        assetManager.register(`skater-jump${i + 1}`, `${baseUrl}images/skater-jump${i + 1}.png`)
     }
 
     await assetManager.load();
-}
-
-
-function setKeyListeners() {
-
-    addEventListener("keydown", (e) => {
-        if (listenToKeys.has(e.key) && !keysDown.has(e.key)) {
-            keysDown.add(e.key);
-        }
-    });
-
-
-    addEventListener("keyup", (e) => {
-        if (keysDown.has(e.key)) {
-            keysDown.delete(e.key);
-        }
-    });
 }
 
 
@@ -488,8 +472,6 @@ async function init() {
 
     await initAssets();
 
-    setKeyListeners();
-
     const skater = new Skater({ x: WIDTH / 2 - 10, y: HEIGHT / 2 - 16  }, { x: 0, y: 0 }, 20, 32);
 
     const canvasBackground: HTMLCanvasElement | null = document.querySelector("#canvas-background");
@@ -498,7 +480,7 @@ async function init() {
 
     const inputColor: HTMLInputElement | null = document.querySelector("#input-color");
 
-    const app: HTMLBodyElement | null = document.querySelector("#app");
+    const app = document.querySelector("#app"); 
 
     if (canvasBackground && canvasPlatform && inputColor && app) {
 
@@ -517,9 +499,7 @@ async function init() {
 
             app.addEventListener("click", () => {
                 isPlaying = !isPlaying;
-            })
-
-
+            });
 
             const generatePlatforms = createGeneratePlatformsFunction();
 
@@ -543,6 +523,5 @@ async function init() {
 
 
 init().then(({ ctxPlatform, ctxBackground, skater, generatePlatforms }) => {
-
     play(skater, ctxPlatform, ctxBackground, generatePlatforms);
 }).catch(error => console.error(error));

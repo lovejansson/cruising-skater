@@ -23,7 +23,6 @@ class JumpingState implements SkaterState {
         this.jumpFrame = 0;
         this.vel = vel;
         this.trick = trick;
-    
     }
 
     update(skater: Skater): void {
