@@ -12,7 +12,7 @@ let inputColorIsOpen = false;
 
 // export let keys = new KeyListener(["a", "s", " "]);
 
-let overlayColor: string = "#655b79"; 
+let overlayColor: string | null = null; 
 
 export let gameObjects: GameObject[] = [];
 
@@ -81,25 +81,25 @@ function play(
 
             translateX = 0;
             translateY = 0;
-    }
+        }
 
-    ctxPlatform.translate(-translateX,-translateY); 
+        ctxPlatform.translate(-translateX,-translateY); 
 
-    drawBackground(ctxBackground);
-    drawPlatform(ctxPlatform);
+        drawBackground(ctxBackground);
+        drawPlatform(ctxPlatform);
 
     } else {
 
         const audioplayer = AudioPlayer.getInstance();
+
         if(audioplayer.isOn()) {
             audioplayer.onOffSwitch();
             audioplayer.stopAudio("background");
         }
 
-
-
         ctxThumbnail.drawImage(AssetManager.getInstance().get("thumbnail"), 0, 0, WIDTH, HEIGHT);
-        drawOverlay(ctxThumbnail, overlayColor);
+
+        if(overlayColor) drawOverlay(ctxThumbnail, overlayColor);
      
     }
 
@@ -139,7 +139,7 @@ function drawPlatform(ctx: CanvasRenderingContext2D) {
         obj.draw(ctx);
     }
 
-    drawOverlay(ctx, overlayColor);
+   if(overlayColor) drawOverlay(ctx, overlayColor);
 }
 
 
@@ -191,7 +191,7 @@ async function initAssets() {
     assetManager.register("wall-long", `${baseUrl}images/wall-long.png`);
 
     assetManager.register("skater-cruise", `${baseUrl}images/skater-cruise.png`);
-    assetManager.register("thumbnail", `${baseUrl}images/thumbnail-grey.png`);
+    assetManager.register("thumbnail", `${baseUrl}images/thumbnail.png`);
 
     for(let i = 0; i < 6; ++i) {
         assetManager.register(`skater-jump${i + 1}`, `${baseUrl}images/skater-jump${i + 1}.png`)
@@ -457,7 +457,7 @@ function drawBackground(ctx: CanvasRenderingContext2D) {
 
     ctx.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT);
 
-    drawOverlay(ctx, overlayColor);
+   if(overlayColor) drawOverlay(ctx, overlayColor);
 
 }
 
@@ -484,9 +484,9 @@ function drawOverlay(ctx: CanvasRenderingContext2D, overlayColor: string) {
          hsl = toHSLFromRGB({r, g, b});
      
          hsl.h = color.h;
-         hsl.s = color.s;
+         hsl.s = color.s ;
 
-          rgb = toRGBFromHSL({h: hsl.h, s: hsl.s, l: hsl.l});
+        rgb = toRGBFromHSL({h: hsl.h, s: hsl.s, l: hsl.l});
 
          canvasImageData.data[i] = rgb.r;
          canvasImageData.data[i + 1] = rgb.g;
@@ -531,7 +531,7 @@ async function init() {
                 if((e.target as HTMLInputElement).value) overlayColor = (e.target as HTMLInputElement).value;
             });
 
-            inputColor.value = overlayColor;
+            if(overlayColor)inputColor.value = overlayColor;
 
             app.addEventListener("click", () => {
                 if(inputColorIsOpen) inputColorIsOpen = false;
