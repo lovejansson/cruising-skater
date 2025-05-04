@@ -508,56 +508,58 @@ async function init() {
 
     const canvasThumbnail: HTMLCanvasElement | null = document.querySelector("#canvas-thumbnail");
 
+    const inputColorContainer: HTMLDivElement | null = document.querySelector("#input-color-container");
+
     const inputColor: HTMLInputElement | null = document.querySelector("#input-color");
 
     const app = document.querySelector("#app"); 
 
     const audioPlayerElement = document.querySelector("audio-player");
 
-
-    if (audioPlayerElement && canvasBackground && canvasPlatform && inputColor && app && canvasThumbnail ) {
+    if (inputColorContainer && audioPlayerElement && canvasBackground && canvasPlatform && inputColor && app && canvasThumbnail ) {
 
         audioPlayerElement.addEventListener("pause", () => {
             isPlaying = false;
+            inputColor.classList.add("display-none");
         });
 
         audioPlayerElement.addEventListener("play", () => {
             isPlaying = true;
+            inputColor.classList.remove("display-none");
         });
 
         audioPlayerElement.addEventListener("volume", (e: any) => {
             AudioPlayer.getInstance().setVolume(e.detail.volume / 100);
         });
 
-
-
-        const ctxBackground = canvasBackground.getContext("2d",{ willReadFrequently: true });
+        const ctxBackground = canvasBackground.getContext("2d", { willReadFrequently: true });
 
         const ctxPlatform = canvasPlatform.getContext("2d", { willReadFrequently: true });
 
         const ctxThumbnail = canvasThumbnail.getContext("2d", { willReadFrequently: true });
 
         if (ctxBackground && ctxPlatform && ctxThumbnail) {
-            inputColor.addEventListener("click", (e) => {
-                e.stopPropagation();
 
-                inputColorIsOpen = true;
-            })
+            inputColorContainer.addEventListener("click", (e) => {
+
+                if(inputColorIsOpen){
+                    e.stopPropagation();
+                    inputColorIsOpen = false;
+                    inputColorContainer.classList.toggle("display-none");
+                };
+            });
+
+            inputColor.addEventListener("click", (e) => {
+                inputColorContainer.classList.toggle("display-none");
+                inputColorIsOpen = !inputColorIsOpen;
+                e.stopPropagation();
+            });
 
             inputColor.addEventListener("change", (e) => {
                 if((e.target as HTMLInputElement).value) overlayColor = (e.target as HTMLInputElement).value;
             });
 
-            if(overlayColor)inputColor.value = overlayColor;
-
-            app.addEventListener("click", () => {
-                if(inputColorIsOpen) inputColorIsOpen = false;
-                else {
-                    isPlaying = !isPlaying;
-                    inputColor.classList.toggle("display-none");
-                }
-
-            });
+            if(overlayColor) inputColor.value = overlayColor;
 
             const generatePlatforms = createGeneratePlatformsFunction();
 
