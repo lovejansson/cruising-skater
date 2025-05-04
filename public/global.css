@@ -11,8 +11,8 @@ html, body,#app {
 
 canvas {
     cursor: pointer;
-    width: 100%;
-    height: auto;
+    width: auto;
+    height: 100%;
     aspect-ratio: 320/180;    
     image-rendering: pixelated;
     position: absolute;

@@ -468,7 +468,7 @@ function drawOverlay(ctx: CanvasRenderingContext2D, overlayColor: string) {
             
      const canvasImageData = ctx.getImageData(0, 0, WIDTH, HEIGHT);
 
-     let r= 0;
+     let r = 0;
      let g = 0;
      let b = 0;
      let hsl = {h: 0, s: 0, l: 0};
@@ -512,7 +512,24 @@ async function init() {
 
     const app = document.querySelector("#app"); 
 
-    if (canvasBackground && canvasPlatform && inputColor && app && canvasThumbnail ) {
+    const audioPlayerElement = document.querySelector("audio-player");
+
+
+    if (audioPlayerElement && canvasBackground && canvasPlatform && inputColor && app && canvasThumbnail ) {
+
+        audioPlayerElement.addEventListener("pause", () => {
+            isPlaying = false;
+        });
+
+        audioPlayerElement.addEventListener("play", () => {
+            isPlaying = true;
+        });
+
+        audioPlayerElement.addEventListener("volume", (e: any) => {
+            AudioPlayer.getInstance().setVolume(e.detail.volume / 100);
+        });
+
+
 
         const ctxBackground = canvasBackground.getContext("2d",{ willReadFrequently: true });
 
@@ -559,7 +576,7 @@ async function init() {
         }
     }
 
-    throw new Error("Failed to initialize canvas");
+    throw new Error("Failed to initialize DOM");
 }
 
 

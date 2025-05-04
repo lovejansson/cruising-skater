@@ -20,7 +20,125 @@
         <input id="input-color" class="display-none" type="color" />
    
     </main>
+    <audio-player/>
+    <script type="module" src="/src/audio-player/AudioPlayerElement.js"></script>
     <script type="module" src="/src/main.ts"></script>
 </body>
 
+    <!-- Templates for web components -->
+
+    <template id="template-audio-player">
+        
+        <style>
+
+            :host {
+                --color: black;
+            }
+        
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+                font-family: Consolas;
+            }
+
+            button {
+                cursor: pointer;
+                background: none;
+                border: none;
+                padding: 0;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                outline: none;
+            }
+
+            .icon {
+                width: 2.4rem;
+            }
+
+            .hidden {
+                display: none;
+            }
+
+            #player{
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: transparent;
+                z-index: 1000;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-end;
+            }
+
+            #player:hover > #player-controls  {
+                opacity: 1;
+            }
+
+            #player-controls {
+                width: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                opacity: 0;
+                transition: opacity 0.2s ease-in;
+                padding: 1rem;
+            }
+
+            #player-controls {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+            }
+
+            #btn-play-pause {
+                color: var(--color);
+            }
+
+            #btn-play-pause:hover, #volume-control:hover{
+                opacity: 0.7;
+            }
+
+            #volume-control {
+                display: flex;
+                align-items: center;
+                gap: 2px;
+                opacity: 1;
+                transition: opacity 0.2s ease;
+                height: 2.4rem;
+            }
+
+            .square-filled {
+                width: 0.75em;
+                aspect-ratio: 1/1;
+                background-color: var(--color);
+            }
+
+            .square-empty {
+                width: 0.75em;
+                aspect-ratio: 1/1;
+                border: 2px solid var(--color);
+                background-color: transparent;
+            }
+
+        </style>
+
+        <div id="player">
+            <section id="player-controls">
+                <button id="btn-play-pause"><svg class="icon" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <path d="M10 20H8V4h2v2h2v3h2v2h2v2h-2v2h-2v3h-2v2z" fill="currentColor"/> </svg></button>
+                <div id="volume-control">
+                    <button></button>
+                    <button></button>
+                    <button></button>
+                    <button></button>
+                    <button></button>
+                </div>
+            </section>
+        </div>
+    </template>
 </html>
