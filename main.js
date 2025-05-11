@@ -6,6 +6,7 @@ import { Obsticle } from "./Obsticle.js";
 import {  getCollision } from "./collision.js";
 import { toHSLFromHex, toHSLFromRGB, toRGBFromHSL } from "./color.js";
 import AudioPlayer from "./AudioPlayer.js";
+import { BASE_URL } from "./config.js";
 
 let isPlaying = false;
 let inputColorIsOpen = false;
@@ -212,44 +213,43 @@ function drawOverlay(ctx, overlayColor) {
 }
 
 async function initAssets() {
-    const baseUrl = "./assets/"; // Replace `import.meta.env.BASE_URL` with a static base URL
 
     const assetManager = AssetManager.getInstance();
 
-    assetManager.register("background", `${baseUrl}images/background.png`);
-    assetManager.register("platform-flat", `${baseUrl}images/flat.png`);
-    assetManager.register("platform-stairs-steep", `${baseUrl}images/stairs-steep.png`);
-    assetManager.register("platform-stairs-shallow", `${baseUrl}images/stairs-shallow.png`);
-    assetManager.register("wall-stairs-shallow", `${baseUrl}images/wall-stairs-shallow.png`);
-    assetManager.register("wall-stairs-shallow-open-beginning", `${baseUrl}images/wall-stairs-shallow-open-beginning.png`);
-    assetManager.register("wall-stairs-shallow-open-end", `${baseUrl}images/wall-stairs-shallow-open-end.png`);
-    assetManager.register("wall-stairs-steep", `${baseUrl}images/wall-stairs-steep.png`);
-    assetManager.register("wall-stairs-steep-open-end", `${baseUrl}images/wall-stairs-steep-open-end.png`);
-    assetManager.register("wall-short-open-ends", `${baseUrl}images/wall-short-open-ends.png`);
-    assetManager.register("wall-stairs-steep-open-beginning", `${baseUrl}images/wall-stairs-steep-open-beginning.png`);
+    assetManager.register("background", `${BASE_URL}images/background.png`);
+    assetManager.register("platform-flat", `${BASE_URL}images/flat.png`);
+    assetManager.register("platform-stairs-steep", `${BASE_URL}images/stairs-steep.png`);
+    assetManager.register("platform-stairs-shallow", `${BASE_URL}images/stairs-shallow.png`);
+    assetManager.register("wall-stairs-shallow", `${BASE_URL}images/wall-stairs-shallow.png`);
+    assetManager.register("wall-stairs-shallow-open-beginning", `${BASE_URL}images/wall-stairs-shallow-open-beginning.png`);
+    assetManager.register("wall-stairs-shallow-open-end", `${BASE_URL}images/wall-stairs-shallow-open-end.png`);
+    assetManager.register("wall-stairs-steep", `${BASE_URL}images/wall-stairs-steep.png`);
+    assetManager.register("wall-stairs-steep-open-end", `${BASE_URL}images/wall-stairs-steep-open-end.png`);
+    assetManager.register("wall-short-open-ends", `${BASE_URL}images/wall-short-open-ends.png`);
+    assetManager.register("wall-stairs-steep-open-beginning", `${BASE_URL}images/wall-stairs-steep-open-beginning.png`);
 
-    assetManager.register("wall-long", `${baseUrl}images/wall-long.png`);
-    assetManager.register("rail-short", `${baseUrl}images/rail-short.png`);
-    assetManager.register("rail-long", `${baseUrl}images/rail-long.png`);
-    assetManager.register("wall-short", `${baseUrl}images/wall-short.png`);
-    assetManager.register("wall-long", `${baseUrl}images/wall-long.png`);
+    assetManager.register("wall-long", `${BASE_URL}images/wall-long.png`);
+    assetManager.register("rail-short", `${BASE_URL}images/rail-short.png`);
+    assetManager.register("rail-long", `${BASE_URL}images/rail-long.png`);
+    assetManager.register("wall-short", `${BASE_URL}images/wall-short.png`);
+    assetManager.register("wall-long", `${BASE_URL}images/wall-long.png`);
 
-    assetManager.register("skater-cruise", `${baseUrl}images/skater-cruise.png`);
-    assetManager.register("thumbnail", `${baseUrl}images/thumbnail.png`);
+    assetManager.register("skater-cruise", `${BASE_URL}images/skater-cruise.png`);
+    assetManager.register("thumbnail", `${BASE_URL}images/thumbnail.png`);
 
     for (let i = 0; i < 6; ++i) {
-        assetManager.register(`skater-jump${i + 1}`, `${baseUrl}images/skater-jump${i + 1}.png`);
+        assetManager.register(`skater-jump${i + 1}`, `${BASE_URL}images/skater-jump${i + 1}.png`);
     }
 
     await assetManager.load();
 
     const audioplayer = AudioPlayer.getInstance();
 
-    await audioplayer.createAudio("background", `${baseUrl}audio/background.mp3`);
-    await audioplayer.createAudio("cruising", `${baseUrl}audio/cruising.mp3`);
-    await audioplayer.createAudio("sliding", `${baseUrl}audio/sliding.mp3`);
-    await audioplayer.createAudio("jump", `${baseUrl}audio/jump.wav`);
-    await audioplayer.createAudio("land", `${baseUrl}audio/land.wav`);
+    await audioplayer.createAudio("background", `${BASE_URL}audio/background.mp3`);
+    await audioplayer.createAudio("cruising", `${BASE_URL}audio/cruising.mp3`);
+    await audioplayer.createAudio("sliding", `${BASE_URL}audio/sliding.mp3`);
+    await audioplayer.createAudio("jump", `${BASE_URL}audio/jump.wav`);
+    await audioplayer.createAudio("land", `${BASE_URL}audio/land.wav`);
 
     audioplayer.setVolume(1);
 }
