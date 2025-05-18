@@ -216,40 +216,40 @@ async function initAssets() {
 
     const assetManager = AssetManager.getInstance();
 
-    assetManager.register("background", `${BASE_URL}images/background.png`);
-    assetManager.register("platform-flat", `${BASE_URL}images/flat.png`);
-    assetManager.register("platform-stairs-steep", `${BASE_URL}images/stairs-steep.png`);
-    assetManager.register("platform-stairs-shallow", `${BASE_URL}images/stairs-shallow.png`);
-    assetManager.register("wall-stairs-shallow", `${BASE_URL}images/wall-stairs-shallow.png`);
-    assetManager.register("wall-stairs-shallow-open-beginning", `${BASE_URL}images/wall-stairs-shallow-open-beginning.png`);
-    assetManager.register("wall-stairs-shallow-open-end", `${BASE_URL}images/wall-stairs-shallow-open-end.png`);
-    assetManager.register("wall-stairs-steep", `${BASE_URL}images/wall-stairs-steep.png`);
-    assetManager.register("wall-stairs-steep-open-end", `${BASE_URL}images/wall-stairs-steep-open-end.png`);
-    assetManager.register("wall-short-open-ends", `${BASE_URL}images/wall-short-open-ends.png`);
-    assetManager.register("wall-stairs-steep-open-beginning", `${BASE_URL}images/wall-stairs-steep-open-beginning.png`);
+    assetManager.register("background", `${BASE_URL}assets/images/background.png`);
+    assetManager.register("platform-flat", `${BASE_URL}assets/images/flat.png`);
+    assetManager.register("platform-stairs-steep", `${BASE_URL}assets/images/stairs-steep.png`);
+    assetManager.register("platform-stairs-shallow", `${BASE_URL}assets/images/stairs-shallow.png`);
+    assetManager.register("wall-stairs-shallow", `${BASE_URL}assets/images/wall-stairs-shallow.png`);
+    assetManager.register("wall-stairs-shallow-open-beginning", `${BASE_URL}assets/images/wall-stairs-shallow-open-beginning.png`);
+    assetManager.register("wall-stairs-shallow-open-end", `${BASE_URL}assets/images/wall-stairs-shallow-open-end.png`);
+    assetManager.register("wall-stairs-steep", `${BASE_URL}assets/images/wall-stairs-steep.png`);
+    assetManager.register("wall-stairs-steep-open-end", `${BASE_URL}assets/images/wall-stairs-steep-open-end.png`);
+    assetManager.register("wall-short-open-ends", `${BASE_URL}assets/images/wall-short-open-ends.png`);
+    assetManager.register("wall-stairs-steep-open-beginning", `${BASE_URL}assets/images/wall-stairs-steep-open-beginning.png`);
 
-    assetManager.register("wall-long", `${BASE_URL}images/wall-long.png`);
-    assetManager.register("rail-short", `${BASE_URL}images/rail-short.png`);
-    assetManager.register("rail-long", `${BASE_URL}images/rail-long.png`);
-    assetManager.register("wall-short", `${BASE_URL}images/wall-short.png`);
-    assetManager.register("wall-long", `${BASE_URL}images/wall-long.png`);
+    assetManager.register("wall-long", `${BASE_URL}assets/images/wall-long.png`);
+    assetManager.register("rail-short", `${BASE_URL}assets/images/rail-short.png`);
+    assetManager.register("rail-long", `${BASE_URL}assets/images/rail-long.png`);
+    assetManager.register("wall-short", `${BASE_URL}assets/images/wall-short.png`);
+    assetManager.register("wall-long", `${BASE_URL}assets/images/wall-long.png`);
 
-    assetManager.register("skater-cruise", `${BASE_URL}images/skater-cruise.png`);
-    assetManager.register("thumbnail", `${BASE_URL}images/thumbnail.png`);
+    assetManager.register("skater-cruise", `${BASE_URL}assets/images/skater-cruise.png`);
+    assetManager.register("thumbnail", `${BASE_URL}assets/images/thumbnail.png`);
 
     for (let i = 0; i < 6; ++i) {
-        assetManager.register(`skater-jump${i + 1}`, `${BASE_URL}images/skater-jump${i + 1}.png`);
+        assetManager.register(`skater-jump${i + 1}`, `${BASE_URL}assets/images/skater-jump${i + 1}.png`);
     }
 
     await assetManager.load();
 
     const audioplayer = AudioPlayer.getInstance();
 
-    await audioplayer.createAudio("background", `${BASE_URL}audio/background.mp3`);
-    await audioplayer.createAudio("cruising", `${BASE_URL}audio/cruising.mp3`);
-    await audioplayer.createAudio("sliding", `${BASE_URL}audio/sliding.mp3`);
-    await audioplayer.createAudio("jump", `${BASE_URL}audio/jump.wav`);
-    await audioplayer.createAudio("land", `${BASE_URL}audio/land.wav`);
+    await audioplayer.createAudio("background", `${BASE_URL}assets/audio/background.mp3`);
+    await audioplayer.createAudio("cruising", `${BASE_URL}assets/audio/cruising.mp3`);
+    await audioplayer.createAudio("sliding", `${BASE_URL}assets/audio/sliding.mp3`);
+    await audioplayer.createAudio("jump", `${BASE_URL}assets/audio/jump.wav`);
+    await audioplayer.createAudio("land", `${BASE_URL}assets/audio/land.wav`);
 
     audioplayer.setVolume(1);
 }
