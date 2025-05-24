@@ -1,4 +1,4 @@
-# Cruising
+# Cruising skater
 This is an endless-runner platformer where a skater is crusing down by the river, doing one of the 6 tricks she has learnt far.
 The platforms and obsticles are procedurally generated as the program progresses, choosing one of several predetermined combinations of flat ground, stairs, walls and rails. 
 
