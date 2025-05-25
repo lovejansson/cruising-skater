@@ -436,6 +436,7 @@ async function init() {
         const ctxPlatform = canvasPlatform.getContext("2d", { willReadFrequently: true });
         const ctxThumbnail = canvasThumbnail.getContext("2d", { willReadFrequently: true });
 
+     
         if (ctxBackground && ctxPlatform && ctxThumbnail) {
             inputColorContainer.addEventListener("click", (e) => {
                 if (inputColorIsOpen) {
@@ -449,6 +450,13 @@ async function init() {
                 inputColorContainer.classList.toggle("display-none");
                 inputColorIsOpen = !inputColorIsOpen;
                 e.stopPropagation();
+            });
+
+            inputColor.addEventListener("blur", () => {
+                if (inputColorIsOpen) {
+                    inputColorIsOpen = false;
+                    inputColorContainer.classList.toggle("display-none");
+                }
             });
 
             inputColor.addEventListener("change", (e) => {
