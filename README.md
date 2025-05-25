@@ -1,6 +1,5 @@
 # Cruising skater
-This is an endless-runner platformer where a skater is crusing down by the river, doing one of the 6 tricks she has learnt far.
-The platforms and obsticles are procedurally generated as the program progresses, choosing one of several predetermined combinations of flat ground, stairs, walls and rails. 
+This is an endless-runner platformer where a skater is cruising down by the river, doing one of the six tricks she has learned so far. The platforms and obstacles are procedurally generated as the program progresses, choosing one of several predetermined combinations of flat ground, stairs, walls, and rails.
 
 ## Interactivity features
 - Changing color of the art will add an overlay to the grayscale starter. 
@@ -9,7 +8,7 @@ The platforms and obsticles are procedurally generated as the program progresses
 
 ## Tech Stack
 
-- [Vanilla JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript).
-- [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) for graphics.
+- [Vanilla JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+- [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
 
 
