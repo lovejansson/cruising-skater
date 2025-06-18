@@ -1,10 +1,9 @@
-import { GameObject, StaticObject} from "./gameObjects.js";
-
+import { StaticImage } from "./pim-art/index.js";
 /**
  * Represents an obstacle in the game.
  * Extends the `StaticObject` class.
  */
-export class Obsticle extends StaticObject {
+export class Obsticle extends StaticImage {
     /**
      * @param {{x: number, y: number}} pos - The position of the obstacle.
      * @param {number} width - The width of the obstacle.

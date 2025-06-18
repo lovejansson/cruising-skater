@@ -1,10 +1,10 @@
-import { StaticObject } from "./gameObjects.js";
+import { StaticImage } from "./pim-art/index.js";
 
 /**
  * Represents a platform in the game.
  * Extends the `StaticObject` class.
  */
-export class Platform extends StaticObject {
+export class Platform extends StaticImage {
     /**
      * @param {{x: number, y: number}} pos - The position of the platform.
      * @param {number} width - The width of the platform.

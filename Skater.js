@@ -1,11 +1,8 @@
-import { gameObjects, getTranslatedPos, WIDTH } from "./main.js";
+import { gameObjects, getTranslatedPos, WIDTH } from "./index.js";
 import { Obsticle } from "./Obsticle.js";
 import { Platform } from "./Platform.js";
-import { DynamicObject } from "./gameObjects.js";
 import "./array.js";
-import AudioPlayer from "./AudioPlayer.js";
-import { GameObject } from "./gameObjects.js";
-
+import { Sprite } from "./pim-art/index.js";
 
 /**
  * @typedef  {{obj: GameObject, blocked: {
@@ -65,11 +62,11 @@ class JumpingState extends SkaterState {
      */
     update(skater) {
         if (this.#jumpFrame === 0) {
-            AudioPlayer.getInstance().playAudio("jump");
+            skater.scene.art.audio.play("jump");
         }
 
         if (this.#jumpFrame > 0 && skater.isBlockedDown) {
-            AudioPlayer.getInstance().stopAudio("jump");
+            skater.scene.art.audio.stop("jump");
             skater.state = new CruisingState(2);
             skater.vel.y = 0;
             return;
@@ -113,31 +110,32 @@ class CruisingState extends SkaterState {
      */
     update(skater) {
         skater.vel.x = this.#velX;
-        const audioplayer = AudioPlayer.getInstance();
 
         if (skater.isBlockedDown) {
             if (skater.isOnPlatform) {
                 if (skater.isCloseToObsticle(gameObjects)) {
-                    audioplayer.stopAudio("cruising");
-                    audioplayer.stopAudio("sliding");
+                    skater.scene.art.audio.stop("cruising");
+                    skater.scene.art.audio.stop("sliding");
                     skater.state = new JumpingState({ y: -15, x: 3 }, JumpingState.obsticleTricks[Math.floor(Math.random() * JumpingState.obsticleTricks.length)]);
                 } else if (skater.isCloseToStairs(gameObjects)) {
-                    audioplayer.stopAudio("cruising");
-                    audioplayer.stopAudio("sliding");
+                    skater.scene.art.audio.stop("cruising");
+                    skater.scene.art.audio.stop("sliding");
                     skater.state = new JumpingState({ y: -15, x: 5 }, JumpingState.stairsTricks[Math.floor(Math.random() * JumpingState.stairsTricks.length)]);
                 } else {
-                    audioplayer.stopAudio("sliding");
-                    audioplayer.playAudio("cruising", true);
+                    skater.scene.art.audio.stop("sliding");
+                    skater.scene.art.audio.play("cruising", true);
                 }
             } else {
-                audioplayer.stopAudio("cruising");
-                audioplayer.playAudio("sliding", true);
+
+
+                     skater.scene.art.audio.stop("cruising");
+                    skater.scene.art.audio.play("sliding", true);
             }
 
             skater.vel.y = 0;
         } else {
-            audioplayer.stopAudio("cruising");
-            audioplayer.stopAudio("sliding");
+                skater.scene.art.audio.stop("sliding");
+                skater.scene.art.audio.stop("cruising");
             const doTrick = Math.random() > 0.75 && !skater.isCloseToStairs(gameObjects, 128);
             if (doTrick) {
                 const trick = JumpingState.obsticleTricks[Math.floor(Math.random() * JumpingState.obsticleTricks.length)];
@@ -158,9 +156,9 @@ class CruisingState extends SkaterState {
 
 /**
  * Represents the skater in the game.
- * Extends the `DynamicObject` class.
+ * Extends the `Sprite` class.
  */
-export class Skater extends DynamicObject {
+export class Skater extends Sprite {
     /**
      * @param {{x: number, y: number}} pos - The position of the skater.
      * @param {{x: number, y: number}} vel - The velocity of the skater.
