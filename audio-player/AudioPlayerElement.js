@@ -6,7 +6,7 @@ const pauseIcon = '<svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox=
 const MAX_VOLUME = 100;
 const DEFAULT_VOLUME = 20;
 const VOLUME_STEP = 20;
-const DEBUG = true;
+const DEBUG = false;
 
 export default class AudioPlayerElement extends HTMLElement {
   

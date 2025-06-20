@@ -3,20 +3,20 @@ import ArtObject from "./ArtObject.js";
 import { NotImplementedError } from "../errors.js";
 
 /** 
-* @typedef {import("../Screen.js").default} Screen
+* @typedef {import("../Scene.js").Scene} Scene
 */
 
 export default class Sprite extends ArtObject {
 
      /**
-     * @param {Screen} screen
+     * @param {Scene} scene
      * @param {{ x: number, y: number }} pos
      * @param {number} width
      * @param {number} height
      * @param {string | undefined} image 
      */
-    constructor(screen, pos, width, height, image = undefined) {
-        super(screen, pos, width, height);
+    constructor(scene, pos, width, height, image = undefined) {
+        super(scene, pos, width, height);
         this.animations = new AnimationManager(this);
         this.image = image;
     }

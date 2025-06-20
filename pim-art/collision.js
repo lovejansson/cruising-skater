@@ -1,7 +1,7 @@
-import { GameObject } from "./gameObjects.js";
+import  ArtObject  from "./objects/ArtObject.js";
 
 /**
- * @typedef  {{obj: GameObject, blocked: {
+ * @typedef  {{obj: ArtObject, blocked: {
  * top: boolean,
  * right: boolean,
  * bottom: boolean,
@@ -13,8 +13,8 @@ import { GameObject } from "./gameObjects.js";
  * Doesn't account for more deeply overlapping objects... expects user to separate objects on collision, so the 'blocked' properties may be
  * weird if that's not the case.
  * 
- * @param {GameObject} obj1 
- * @param {GameObject} obj2
+ * @param {ArtObject} obj1 
+ * @param {ArtObject} obj2
  * @returns {CollisionResult|null} Returns an object with the colliding object and the blocked sides (top, right, bottom, left) or null if no collision.
  */
 function getCollision(obj1, obj2) {
@@ -28,6 +28,7 @@ function getCollision(obj1, obj2) {
 
     // If box1 is to the left, top, right or bottom of box2 but not touching, i.e. outside of the limit of box2, they are not colliding. 
     const isColliding = !(box1XEnd < box2.x || box1YEnd < box2.y || box1.x > box2XEnd || box1.y > box2YEnd);
+
 
     if (isColliding) {
         // Calculate overlaps in Y and X direction and determine if it is a vertical collision and/or a horizontal collision

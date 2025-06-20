@@ -1,18 +1,16 @@
 import { StaticImage } from "./pim-art/index.js";
-/**
- * Represents an obstacle in the game.
- * Extends the `StaticObject` class.
- */
-export class Obsticle extends StaticImage {
+
+export default class Obsticle extends StaticImage {
     /**
+     * @param {Scene} scene
      * @param {{x: number, y: number}} pos - The position of the obstacle.
      * @param {number} width - The width of the obstacle.
      * @param {number} height - The height of the obstacle.
      * @param {number} endYDiff - The difference in the Y-coordinate at the end of the obstacle.
      * @param {string} image - The key of the image asset for the obstacle.
      */
-    constructor(pos, width, height, endYDiff, image) {
-        super(pos, width, height, image);
+    constructor(scene, pos, width, height, endYDiff, image) {
+        super(scene, pos, width, height, image);
 
         /**
          * @type {{x: number, y: number}} The position of the obstacle.

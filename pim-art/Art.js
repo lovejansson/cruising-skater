@@ -1,9 +1,8 @@
 import AudioPlayer from "./AudioPlayer.js";
 import ImagesManager from "./ImagesManager.js";
 
-
 /**
- * @typedef {import("./Screen.js").default} Screen
+ * @typedef {import("./Scene.js").Scene} Scene
  */
 
 /**
@@ -11,24 +10,25 @@ import ImagesManager from "./ImagesManager.js";
  * 
  * @property {number} width
  * @property {number} height
- * @property {Screen} play
- * @property {string} pauseImage
- * @property {string} canvas
+ * @property {Scene} play
+ * @property {Scene} pause
+ * @property {string} canvas 
  * @property {number} [frameRate]
+ * @property {boolean} [willReadFrequently]
  */
 
-const FRAME_RATE_DEFAULT = 60; // FPS 
+const FRAME_RATE_DEFAULT = 120; 
 const CANVAS_SELECTOR_DEFAULT = "canvas";
 
 /**
- * @description The main class for managing the art piece; switching between play and pause scenes, loading assets, and managing services like images and audio. 
+ * @description The main class for managing the art piece; switching between the play and pause scenes, loading assets, and managing services like images and audio. 
  */
 export default class Art {
 
     /**
      * @type {boolean}
      */
-    isPlaying;
+    #isPlaying;
 
     /**
      * @type {ImagesManager}
@@ -46,41 +46,83 @@ export default class Art {
     config;
 
     /**
+     * @type {CanvasRenderingContext2D}
+     */
+    ctx;
+
+    /**
      * @param {ArtConfig} config 
      */
     constructor(config) {
 
         this.images = new ImagesManager();
-        //this.audio = new AudioPlayer();
-        this.isPlaying = false;
+        this.audio = new AudioPlayer();
+        this.#isPlaying = false;
         this.config = config;
         this.elapsedAcc = 0; 
         this.elapsedPrev = 0; 
+        this.width = config.width;
+        this.height = config.height;
     }
 
     play() {
-        this.#init().then(ctx => {
-            this.#privatePlay(ctx);
+        this.#init().then(() => {
+            this.#privatePlay(this.ctx);
         });
     }
 
     /**
-     * @param {CanvasRenderingContext2D} ctx 
+     * @param {boolean} val
      */
-    #privatePlay(ctx, elapsed = 0) {
+    set isPlaying(val) {
+        if(val) {
+            this.config.play.start();
+            this.config.pause.stop();
+        } else {
+            this.config.play.stop();
+            this.config.pause.start();
+        }
+
+        this.#isPlaying = val;
+    }
+
+    get isPlaying(){
+        return this.#isPlaying;
+    }
+
+    /**
+     * @param {CanvasRenderingContext2D} ctx
+     */
+    async #privatePlay(ctx, elapsed = 0) {
 
         this.elapsedAcc = (this.elapsedAcc || 0) + elapsed - this.elapsedPrev;
-
+  
         if(this.elapsedAcc >= (1000 / (this.config.frameRate || FRAME_RATE_DEFAULT))) {
 
-            if (this.isPlaying) {
-                ctx.clearRect(0, 0, this.config.width, this.config.height);
+            if (this.#isPlaying) {
+                
+                if(!this.config.play.isInitialized) {
+                    await this.config.play.init();
+                }
+
+                const currentTransform = ctx.getTransform();
+                ctx.clearRect(0 - currentTransform.e, 0 - currentTransform.f, this.width, this.height);
+
                 this.config.play.update();
                 this.config.play.draw(ctx);
-            } else {
 
-                ctx.clearRect(0, 0, this.config.width, this.config.height);
-                ctx.drawImage(this.images.get(this.config.pauseImage), 0, 0, this.config.width, this.config.height);
+            } else {
+           
+                if(!this.config.pause.isInitialized) {
+                    await this.config.pause.init();
+                }
+
+                const currentTransform = ctx.getTransform();
+
+                ctx.clearRect(0 - currentTransform.e, 0 - currentTransform.f, this.width, this.height);
+            
+                this.config.pause.update();
+                this.config.pause.draw(ctx);
             }
 
             this.elapsedAcc = 0;
@@ -92,7 +134,17 @@ export default class Art {
 
     async #init() {
 
-        const canvas = document.querySelector(this.config.canvas || CANVAS_SELECTOR_DEFAULT);
+        const  ctx = this.#initCanvas(this.config.canvas || CANVAS_SELECTOR_DEFAULT);
+    
+        this.config.play.art = this; 
+        this.config.pause.art = this; 
+
+        this.ctx = ctx;
+
+    }
+
+    #initCanvas(selector) {
+        const canvas = document.querySelector(selector);
 
         if (canvas === null) {
             console.error("canvas is null");
@@ -106,19 +158,16 @@ export default class Art {
             throw new Error("ctx is null");
         }
 
-        canvas.width = this.config.width;
-        canvas.height = this.config.height;
+        canvas.width = this.width;
+        canvas.height = this.height;
+
+        if(this.config.willReadFrequently) {
+            ctx.willReadFrequently = this.config.willReadFrequently; // Enable willReadFrequently for better performance when reading pixel data frequently.
+        }
 
         ctx.imageSmoothingEnabled = true; // For smooth scaling of images so that pixel art doesn't look blurry.
 
-        this.config.play.art = this; // set the art instance in the play screen
-
-        await this.config.play.init();
-
-        canvas.addEventListener("click", () => {
-            this.isPlaying = !this.isPlaying;
-        });
-
         return ctx;
+
     }
 }

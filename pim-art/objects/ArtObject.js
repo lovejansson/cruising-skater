@@ -1,8 +1,9 @@
 
 import { NotImplementedError } from "../errors.js";
 
+
 /** 
-* @typedef {import("../Screen.js").default} Screen
+* @typedef {import("../Scene.js").Scene} Scene
 */
 
 /**
@@ -10,13 +11,13 @@ import { NotImplementedError } from "../errors.js";
  */
 export default class ArtObject {
     /**
-     * @param {Screen} screen
+     * @param {Scene} scene
      * @param {{ x: number, y: number }} pos
      * @param {number} width
      * @param {number} height
      */
-    constructor(screen, pos, width, height) {
-        this.screen = screen;
+    constructor(scene, pos, width, height) {
+        this.scene = scene;
         this.pos = pos;
         this.width = width;
         this.height = height;

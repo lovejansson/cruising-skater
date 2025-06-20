@@ -1,11 +1,10 @@
-import { gameObjects, getTranslatedPos, WIDTH } from "./index.js";
-import { Obsticle } from "./Obsticle.js";
-import { Platform } from "./Platform.js";
+import  Obsticle  from "./Obsticle.js";
+import  Platform  from "./Platform.js";
 import "./array.js";
-import { Sprite } from "./pim-art/index.js";
+import { ArtObject, Scene, Sprite } from "./pim-art/index.js";
 
 /**
- * @typedef  {{obj: GameObject, blocked: {
+ * @typedef  {{obj: ArtObject, blocked: {
 * top: boolean,
 * right: boolean,
 * bottom: boolean,
@@ -113,11 +112,11 @@ class CruisingState extends SkaterState {
 
         if (skater.isBlockedDown) {
             if (skater.isOnPlatform) {
-                if (skater.isCloseToObsticle(gameObjects)) {
+                if (skater.isCloseToObsticle(skater.scene.objects)) {
                     skater.scene.art.audio.stop("cruising");
                     skater.scene.art.audio.stop("sliding");
                     skater.state = new JumpingState({ y: -15, x: 3 }, JumpingState.obsticleTricks[Math.floor(Math.random() * JumpingState.obsticleTricks.length)]);
-                } else if (skater.isCloseToStairs(gameObjects)) {
+                } else if (skater.isCloseToStairs(skater.scene.objects)) {
                     skater.scene.art.audio.stop("cruising");
                     skater.scene.art.audio.stop("sliding");
                     skater.state = new JumpingState({ y: -15, x: 5 }, JumpingState.stairsTricks[Math.floor(Math.random() * JumpingState.stairsTricks.length)]);
@@ -126,17 +125,15 @@ class CruisingState extends SkaterState {
                     skater.scene.art.audio.play("cruising", true);
                 }
             } else {
-
-
-                     skater.scene.art.audio.stop("cruising");
-                    skater.scene.art.audio.play("sliding", true);
+                skater.scene.art.audio.stop("cruising");
+                skater.scene.art.audio.play("sliding", true);
             }
 
             skater.vel.y = 0;
         } else {
                 skater.scene.art.audio.stop("sliding");
                 skater.scene.art.audio.stop("cruising");
-            const doTrick = Math.random() > 0.75 && !skater.isCloseToStairs(gameObjects, 128);
+            const doTrick = Math.random() > 0.75 && !skater.isCloseToStairs(skater.scene.objects, 128);
             if (doTrick) {
                 const trick = JumpingState.obsticleTricks[Math.floor(Math.random() * JumpingState.obsticleTricks.length)];
                 skater.state = new JumpingState({ y: -15, x: 3 }, trick);
@@ -154,19 +151,18 @@ class CruisingState extends SkaterState {
     }
 }
 
-/**
- * Represents the skater in the game.
- * Extends the `Sprite` class.
- */
-export class Skater extends Sprite {
+export default class Skater extends Sprite {
     /**
-     * @param {{x: number, y: number}} pos - The position of the skater.
-     * @param {{x: number, y: number}} vel - The velocity of the skater.
-     * @param {number} width - The width of the skater.
-     * @param {number} height - The height of the skater.
+     * @param {Scene} scene 
+     * @param {{x: number, y: number}} pos 
+     * @param {{x: number, y: number}} vel 
+     * @param {number} width 
+     * @param {number} height 
      */
-    constructor(pos, vel, width, height) {
-        super(pos, vel, width, height);
+    constructor(scene, pos, vel, width, height) {
+        super(scene, pos, width, height);
+
+        this.vel = vel;
 
         /**
          * @type {SkaterState} The current state of the skater.
@@ -188,11 +184,15 @@ export class Skater extends Sprite {
          */
         this.isOnObsticle = false;
 
-        for (let i = 0; i < 6; ++i) {
-            this.animations.create(`skater-jump${i + 1}`, { loop: true, frames: `skater-jump${i + 1}`, numberOfFrames: 4 });
-        }
+      
+        this.animations.create(`skater-jump${1}`, { loop: true, frames: `skater-jump${1}`, numberOfFrames: 4, type: "spritesheet", frameRate: 100});
+        this.animations.create(`skater-jump${2}`, { loop: true, frames: `skater-jump${2}`, numberOfFrames: 4, type: "spritesheet", frameRate: 100});
+        this.animations.create(`skater-jump${3}`, { loop: true, frames: `skater-jump${3}`, numberOfFrames: 4, type: "spritesheet", frameRate: 100});
+        this.animations.create(`skater-jump${4}`, { loop: true, frames: `skater-jump${4}`, numberOfFrames: 5, type: "spritesheet", frameRate: 100});
+        this.animations.create(`skater-jump${5}`, { loop: true, frames: `skater-jump${5}`, numberOfFrames: 5, type: "spritesheet", frameRate: 100});
+        this.animations.create(`skater-jump${6}`, { loop: true, frames: `skater-jump${6}`, numberOfFrames: 5, type: "spritesheet", frameRate: 100});
 
-        this.animations.create("skater-cruise", { loop: true, frames: ["skater-cruise"] });
+        this.animations.create("skater-cruise", { loop: true, frames: "skater-cruise", type: "spritesheet", numberOfFrames: 1, frameRate: 100 });
 
         this.animations.play("skater-cruise");
     }
@@ -242,18 +242,17 @@ export class Skater extends Sprite {
     }
 
     /**
-     * Checks if the skater is close to stairs.
-     * @param {DynamicObject[]} gameObjects - The array of game objects.
-     * @param {number} [diff=4] - The distance threshold.
-     * @returns {boolean} True if the skater is close to stairs, false otherwise.
+     * @param {Sprite[]} objects 
+     * @param {number} [diff=4] 
+     * @returns {boolean} 
      */
-    isCloseToStairs(gameObjects, diff = 4) {
+    isCloseToStairs(objects, diff = 4) {
         let minX = 10000;
-        const skaterTranslatedX = WIDTH / 2;
+        const skaterTranslatedX = this.scene.art.width / 2;
 
-        for (const o of gameObjects) {
+        for (const o of objects) {
             if (o instanceof Platform && o.endYdiff > 0) {
-                const x = getTranslatedPos(o.pos).x;
+                const x = this.scene.getTranslatedPos(o.pos).x;
                 if (x < minX && x > skaterTranslatedX) {
                     minX = x;
                 }
@@ -265,18 +264,17 @@ export class Skater extends Sprite {
     }
 
     /**
-     * Checks if the skater is close to an obstacle.
-     * @param {DynamicObject[]} gameObjects - The array of game objects.
-     * @param {number} [diff=32] - The distance threshold.
-     * @returns {boolean} True if the skater is close to an obstacle, false otherwise.
+     * @param {Sprite[]} objects 
+     * @param {number} [diff=32] 
+     * @returns {boolean} 
      */
-    isCloseToObsticle(gameObjects, diff = 32) {
+    isCloseToObsticle(objects, diff = 32) {
         let minX = 10000;
-        const skaterTranslatedX = WIDTH / 2;
+        const skaterTranslatedX = this.scene.art.width / 2;
 
-        for (const o of gameObjects) {
+        for (const o of objects) {
             if (o instanceof Obsticle) {
-                const x = getTranslatedPos(o.pos).x;
+                const x = this.scene.getTranslatedPos(o.pos).x;
                 if (x < minX && x > skaterTranslatedX) {
                     minX = x;
                 }

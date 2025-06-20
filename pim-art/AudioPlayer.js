@@ -38,7 +38,8 @@ export default class AudioPlayer {
         this.onoff = true;
 
         this.#audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-        this.volumeNode = this.#audioCtx.createGain();
+ 
+        this.#volumeNode = this.#audioCtx.createGain();
         this.#volumeNode.connect(this.#audioCtx.destination);
     }
 
@@ -81,7 +82,7 @@ export default class AudioPlayer {
 
         await Promise.all(promises);
 
-        this.#sounds = [];
+        this.#sounds.clear();
     }
 
 

@@ -1,20 +1,20 @@
 import ArtObject from "./ArtObject.js";
 
 /** 
-* @typedef {import("../Screen.js").default} Screen
+* @typedef {import("../Scene.js").Scene} Scene
 */
 
 export default class StaticImage extends ArtObject {
 
     /**
-     * @param {Screen} screen
+     * @param {Scene} scene
      * @param {{ x: number, y: number }} pos
      * @param {number} width
      * @param {number} height
      * @param {string} image
      */
-    constructor(screen, pos, width, height, image) {
-        super(screen, pos, width, height);
+    constructor(scene, pos, width, height, image) {
+        super(scene, pos, width, height);
         this.image = image;
     }
 
@@ -22,7 +22,6 @@ export default class StaticImage extends ArtObject {
      * @param {CanvasRenderingContext2D} ctx 
      */
     draw(ctx) {
-        ctx.drawImage(this.screen.art.images.get(this.image), this.pos.x, this.pos.y, this.width, this.height);
+        ctx.drawImage(this.scene.art.images.get(this.image), this.pos.x, this.pos.y);
     }
-
 }

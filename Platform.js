@@ -1,19 +1,16 @@
 import { StaticImage } from "./pim-art/index.js";
 
-/**
- * Represents a platform in the game.
- * Extends the `StaticObject` class.
- */
-export class Platform extends StaticImage {
+export default class Platform extends StaticImage {
     /**
+     * @param {Scene} scene
      * @param {{x: number, y: number}} pos - The position of the platform.
      * @param {number} width - The width of the platform.
      * @param {number} height - The height of the platform.
      * @param {number} endYDiff - The difference in the Y-coordinate at the end of the platform.
      * @param {string} image - The key of the image asset for the platform.
      */
-    constructor(pos, width, height, endYDiff, image) {
-        super(pos, width, height, image);
+    constructor(scene, pos, width, height, endYDiff, image) {
+        super(scene, pos, width, height, image);
 
         /**
          * @type {number} The difference in the Y-coordinate at the end of the platform.

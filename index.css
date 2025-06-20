@@ -15,7 +15,7 @@ html, body {
 
 
 /*Keeping the app in the middle of the screen at screen height and fills the background with black if screen isn't 16/9*/
-#app {
+#art {
     width: auto;
     height: 100%;
     aspect-ratio: 16/9;
