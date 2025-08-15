@@ -1,5 +1,5 @@
 # Cruising skater
-This is an endless-runner platformer where a skater is cruising down by the river, doing one of the six tricks she has learned so far. The platforms and obstacles are procedurally generated as the program progresses, choosing one of several predetermined combinations of flat ground, stairs, walls, and rails.
+This is an endless-runner platformer where a skater is cruising down by the river.. The platforms and obstacles are procedurally generated as the program progresses, choosing one of several predetermined combinations of flat ground, stairs, walls, and rails.
 
 ## Tech Stack
 
