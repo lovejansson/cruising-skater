@@ -65,6 +65,19 @@ export default class Art {
         this.height = config.height;
     }
 
+    enterFullScreen(){
+        const container = document.querySelector(this.config.canvas || CANVAS_SELECTOR_DEFAULT);
+
+        if(!container) throw new Error("art container not found");
+
+        if(document.fullscreenElement === null) {
+            container.requestFullscreen();
+        } else {
+            console.warn("An element is already in fullscreen mode: ", document.fullscreenElement);
+        }
+    }
+
+
     play() {
         this.#init().then(() => {
             this.#privatePlay(this.ctx);
