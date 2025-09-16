@@ -7,3 +7,4 @@ This is an endless-runner platformer where a skater is cruising down by the rive
 - [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)
 
 
+<p>A SIMPLE PARAPGRAH</p>
