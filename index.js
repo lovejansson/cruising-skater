@@ -28,7 +28,19 @@ if (inputColorContainer && audioPlayerElement && inputColor) {
       audioPlayerElement.addEventListener("click",  () => {
        console.log("CLICK")
 
-        art.audio.resume();
+       console.log(art.audio.ctx.state);
+
+        //art.audio.resume();
+
+     if (art.audio.ctx.state === "suspended") {
+
+               art.audio.ctx.resume().then(()=> console.log("resume resolved")).catch(e => {
+                                            throw new Error("Error when resuming audio context: " + e.message);
+
+
+                    })
+          
+            }
 
     });
 

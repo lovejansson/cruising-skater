@@ -43,6 +43,9 @@ export default class AudioPlayer {
         this.#volumeNode.connect(this.#ctx.destination);
     }
 
+    get ctx() {
+        return this.#ctx
+    }
 
     /**
      * Adds audio data from a file at the provided path with a specific id.
