@@ -88,7 +88,7 @@ export default class Art {
      * @param {boolean} val
      */
     async play() {
-        await this.audio.onOffSwitch();
+        this.audio.onOffSwitch();
         if(!this.config.play.isInitialized) {
             await this.config.play.init();
         }
@@ -104,7 +104,7 @@ export default class Art {
         }
         this.config.pause.start();
         this.config.play.stop();
-        await this.audio.onOffSwitch();
+         this.audio.onOffSwitch();
         this.isPlaying = false;
     }
 

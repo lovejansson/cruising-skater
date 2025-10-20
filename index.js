@@ -25,10 +25,10 @@ if (inputColorContainer && audioPlayerElement && inputColor) {
 
     art.start();
 
-      audioPlayerElement.addEventListener("click", async () => {
+      audioPlayerElement.addEventListener("click",  () => {
        console.log("CLICK")
 
-       await art.audio.resume();
+        art.audio.resume();
 
     });
 

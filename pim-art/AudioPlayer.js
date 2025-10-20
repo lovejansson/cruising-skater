@@ -151,26 +151,27 @@ export default class AudioPlayer {
         this.#volumeNode.gain.setValueAtTime(volume, this.#ctx.currentTime);
     }
 
-    async resume(){
+     resume(){
         if (this.#ctx.state === "suspended") {
 
-                try {
-                    await this.#ctx.resume();
-                } catch(e) {
-                    throw new Error("Error when resuming audio context: " + e.message);
-                }
+               this.#ctx.resume().catch(e => {
+                                            throw new Error("Error when resuming audio context: " + e.message);
+
+
+                    })
+          
             }
     }
 
     /**
      * Turns the audio player on or off.
      */
-    async onOffSwitch() {
+     onOffSwitch() {
         this.isOn = !this.isOn;
 
         if(this.isOn) {
             
-            await this.resume()
+             this.resume()
         } else {
             this.turnOffAllAudios();
         }
