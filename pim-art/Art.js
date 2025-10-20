@@ -28,7 +28,7 @@ export default class Art {
     /**
      * @type {boolean}
      */
-    #isPlaying;
+    isPlaying;
 
     /**
      * @type {ImagesManager}
@@ -57,7 +57,7 @@ export default class Art {
 
         this.images = new ImagesManager();
         this.audio = new AudioPlayer();
-        this.#isPlaying = false;
+        this.isPlaying = false;
         this.config = config;
         this.elapsedAcc = 0; 
         this.elapsedPrev = 0; 
@@ -78,29 +78,34 @@ export default class Art {
     }
 
 
-    play() {
-        this.#init().then(() => {
-            this.#privatePlay(this.ctx);
-        });
+    async start() {
+        console.log("STARTING")
+        await this.#init();
+        this.#privatePlay(this.ctx);
     }
 
     /**
      * @param {boolean} val
      */
-    set isPlaying(val) {
-        if(val) {
-            this.config.play.start();
-            this.config.pause.stop();
-        } else {
-            this.config.play.stop();
-            this.config.pause.start();
+    async play() {
+        await this.audio.onOffSwitch();
+        if(!this.config.play.isInitialized) {
+            await this.config.play.init();
         }
-
-        this.#isPlaying = val;
+        this.config.play.start();
+        this.config.pause.stop();
+        this.isPlaying = true;
     }
 
-    get isPlaying(){
-        return this.#isPlaying;
+    async pause() {
+
+        if(!this.config.pause.isInitialized) {
+            await this.config.pause.init();
+        }
+        this.config.pause.start();
+        this.config.play.stop();
+        await this.audio.onOffSwitch();
+        this.isPlaying = false;
     }
 
     /**
@@ -112,7 +117,8 @@ export default class Art {
   
         if(this.elapsedAcc >= (1000 / (this.config.frameRate || FRAME_RATE_DEFAULT))) {
 
-            if (this.#isPlaying) {
+            if (this.isPlaying) {
+
                 
                 if(!this.config.play.isInitialized) {
                     await this.config.play.init();

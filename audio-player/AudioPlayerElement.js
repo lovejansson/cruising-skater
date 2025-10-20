@@ -56,6 +56,8 @@ export default class AudioPlayerElement extends HTMLElement {
 
         this.initVolumeControl();
 
+        this.dispatchEvent(new CustomEvent("volume", {detail: {volume: this.volume}}));
+
         this.btnPlayPause.addEventListener("click", (e) => {
             if(this.isOn) {
                 this.pause();
@@ -107,6 +109,7 @@ export default class AudioPlayerElement extends HTMLElement {
      * Sets click listeners for volume control to change volume and initializes volume
      */
     initVolumeControl() {
+
 
         this.volume = DEFAULT_VOLUME;
 

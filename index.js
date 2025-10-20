@@ -10,6 +10,8 @@ const inputColor = document.querySelector("#input-color");
 const audioPlayerElement = document.querySelector("audio-player");
 
 
+
+
 if (inputColorContainer && audioPlayerElement && inputColor) {
 
     const art = new Art({
@@ -21,19 +23,21 @@ if (inputColorContainer && audioPlayerElement && inputColor) {
         willReadFrequently: true
     });
 
-    art.play();
+    art.start();
 
-    audioPlayerElement.addEventListener("pause", () => {
-        art.isPlaying = false;
+    audioPlayerElement.addEventListener("pause", async () => {
+        await art.pause();
         inputColor.classList.add("display-none");
     });
 
-    audioPlayerElement.addEventListener("play", () => {
-        art.isPlaying = true;
+    audioPlayerElement.addEventListener("play",async () => {
+        await art.play();
         inputColor.classList.remove("display-none");
     });
 
     audioPlayerElement.addEventListener("volume", (e) => {
+        console.log("VOLYME ", e.detail.volume)
+
         art.audio.setVolume(e.detail.volume / 100)
     });
 

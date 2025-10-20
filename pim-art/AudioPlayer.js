@@ -3,7 +3,7 @@ export default class AudioPlayer {
     /**
      * @type {boolean}
      */
-    onoff;
+    isOn;
 
     /**
      * @type {Map<string, string>}
@@ -23,7 +23,7 @@ export default class AudioPlayer {
     /**
      * @type {AudioContext}
      */
-    #audioCtx;
+    #ctx;
 
     /**
      * @type {GainNode}
@@ -37,10 +37,10 @@ export default class AudioPlayer {
         this.#playingAudioNodes = new Map();
         this.onoff = true;
 
-        this.#audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+        this.#ctx = new(window.AudioContext || window.webkitAudioContext)();
  
-        this.#volumeNode = this.#audioCtx.createGain();
-        this.#volumeNode.connect(this.#audioCtx.destination);
+        this.#volumeNode = this.#ctx.createGain();
+        this.#volumeNode.connect(this.#ctx.destination);
     }
 
 
@@ -69,7 +69,7 @@ export default class AudioPlayer {
                     // Load an audio file
                     const response = await fetch(path);
                     // Decode it
-                    const audioBuffer = await this.#audioCtx.decodeAudioData(await response.arrayBuffer());
+                    const audioBuffer = await this.#ctx.decodeAudioData(await response.arrayBuffer());
 
                     // Save audio data in map to play later in 'playAudio'
                     this.#buffers.set(id, audioBuffer);
@@ -96,44 +96,33 @@ export default class AudioPlayer {
      */
     play(id, loop = false) {
 
-        if (this.onoff) {
+        if (!this.isOn) throw new AudioPlayerOffStateError("playAudio");
 
-            const alreadyPlayingNode = this.#playingAudioNodes.get(id);
+        const alreadyPlayingNode = this.#playingAudioNodes.get(id);
 
-            if (alreadyPlayingNode) {
+        if (alreadyPlayingNode) {
 
-                return; // Audio is already playing, do nothing
-            }
-
-            // Check if context is in suspended state (autoplay policy)
-            if (this.#audioCtx.state === "suspended") {
-
-                this.#audioCtx.resume();
-            }
-
-            const audioBuffer = this.#buffers.get(id);
-            if (!audioBuffer) throw new AudioNotFoundError(id);
-
-            const audioSource = this.#audioCtx.createBufferSource();
-            audioSource.buffer = audioBuffer;
-            audioSource.loop = loop;
-
-
-            audioSource.connect(this.#volumeNode);
-            audioSource.start();
-
-            // Save the source node so it can be stopped via stopAudio
-            this.#playingAudioNodes.set(id, audioSource);
-
-            // Add event listener to delete the source node when it has stopped playing
-            audioSource.addEventListener("ended", () => {
-                this.#playingAudioNodes.delete(id);
-            });
-
-        } else {
-            throw new AudioPlayerOffStateError("playAudio")
+            return; // Audio is already playing, do nothing
         }
 
+        const audioBuffer = this.#buffers.get(id);
+        if (!audioBuffer) throw new AudioNotFoundError(id);
+
+        const audioSource = this.#ctx.createBufferSource();
+        audioSource.buffer = audioBuffer;
+        audioSource.loop = loop;
+
+
+        audioSource.connect(this.#volumeNode);
+        audioSource.start();
+
+        // Save the source node so it can be stopped via stopAudio
+        this.#playingAudioNodes.set(id, audioSource);
+
+        // Add event listener to delete the source node when it has stopped playing
+        audioSource.addEventListener("ended", () => {
+            this.#playingAudioNodes.delete(id);
+        });
     }
 
     isPlaying(id) {
@@ -157,17 +146,29 @@ export default class AudioPlayer {
      * @throws {InvalidVolumeRangeError} If the volume is outside the range of 0 to 1.
      */
     setVolume(volume) {
+      
         if (volume < 0 || volume > 1) throw new InvalidVolumeRangeError(volume);
-        this.#volumeNode.gain.setValueAtTime(volume, this.#audioCtx.currentTime);
+        this.#volumeNode.gain.setValueAtTime(volume, this.#ctx.currentTime);
     }
 
     /**
      * Turns the audio player on or off.
      */
-    onOffSwitch() {
-        this.onoff = !this.onoff;
+    async onOffSwitch() {
+        this.isOn = !this.isOn;
 
-        if (!this.onoff) {
+        if(this.isOn) {
+            
+            // Check if context is in suspended state and resume it, (user has to start the audio)
+            if (this.#ctx.state === "suspended") {
+
+                try {
+                    await this.#ctx.resume();
+                } catch(e) {
+                    throw new Error("Error when resuming audio context: " + e.message);
+                }
+            }
+        } else {
             this.turnOffAllAudios();
         }
     }

@@ -85,17 +85,11 @@ export default class Play extends Scene {
     }
 
     start() {
-        if (!this.art.audio.onoff) {
-            this.art.audio.onOffSwitch();
-            this.art.audio.play("background", true);
-        }
+        this.art.audio.play("background", true);
     }
 
     stop() {
-        if (this.art.audio.onoff) {
-            this.art.ctx.resetTransform(); 
-            this.art.audio.onOffSwitch();
-        }
+        this.art.ctx.resetTransform(); 
     }
 
 
@@ -204,8 +198,6 @@ export default class Play extends Scene {
         this.art.audio.add("jump", `${BASE_URL}assets/audio/jump.wav`);
         this.art.audio.add("land", `${BASE_URL}assets/audio/land.wav`);
         this.art.audio.add("background", `${BASE_URL}assets/audio/background.mp3`);
-
-        this.art.audio.setVolume(1);
 
         await this.art.audio.load();
 
