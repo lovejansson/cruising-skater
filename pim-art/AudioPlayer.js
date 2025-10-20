@@ -151,6 +151,17 @@ export default class AudioPlayer {
         this.#volumeNode.gain.setValueAtTime(volume, this.#ctx.currentTime);
     }
 
+    async resume(){
+        if (this.#ctx.state === "suspended") {
+
+                try {
+                    await this.#ctx.resume();
+                } catch(e) {
+                    throw new Error("Error when resuming audio context: " + e.message);
+                }
+            }
+    }
+
     /**
      * Turns the audio player on or off.
      */
@@ -159,15 +170,7 @@ export default class AudioPlayer {
 
         if(this.isOn) {
             
-            // Check if context is in suspended state and resume it, (user has to start the audio)
-            if (this.#ctx.state === "suspended") {
-
-                try {
-                    await this.#ctx.resume();
-                } catch(e) {
-                    throw new Error("Error when resuming audio context: " + e.message);
-                }
-            }
+            await this.resume()
         } else {
             this.turnOffAllAudios();
         }

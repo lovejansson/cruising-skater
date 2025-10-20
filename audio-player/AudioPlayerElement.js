@@ -77,7 +77,7 @@ export default class AudioPlayerElement extends HTMLElement {
                 this.play();
             }
 
-            e.stopPropagation();
+            //e.stopPropagation();
         });
 
         playerControls.addEventListener("click", (e) => {

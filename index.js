@@ -25,6 +25,13 @@ if (inputColorContainer && audioPlayerElement && inputColor) {
 
     art.start();
 
+      audioPlayerElement.addEventListener("click", async () => {
+       console.log("CLICK")
+
+       await art.audio.resume();
+
+    });
+
     audioPlayerElement.addEventListener("pause", async () => {
         await art.pause();
         inputColor.classList.add("display-none");
