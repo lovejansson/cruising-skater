@@ -25,25 +25,6 @@ if (inputColorContainer && audioPlayerElement && inputColor) {
 
     art.start();
 
-      audioPlayerElement.addEventListener("click",  () => {
-       console.log("CLICK")
-
-       console.log(art.audio.ctx.state);
-
-        //art.audio.resume();
-
-     if (art.audio.ctx.state === "suspended") {
-
-               art.audio.ctx.resume().then(()=> console.log("resume resolved")).catch(e => {
-                                            throw new Error("Error when resuming audio context: " + e.message);
-
-
-                    })
-          
-            }
-
-    });
-
     audioPlayerElement.addEventListener("pause", async () => {
         await art.pause();
         inputColor.classList.add("display-none");
@@ -55,7 +36,7 @@ if (inputColorContainer && audioPlayerElement && inputColor) {
     });
 
     audioPlayerElement.addEventListener("volume", (e) => {
-        console.log("VOLYME ", e.detail.volume)
+    
 
         art.audio.setVolume(e.detail.volume / 100)
     });

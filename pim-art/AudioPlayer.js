@@ -43,10 +43,6 @@ export default class AudioPlayer {
         this.#volumeNode.connect(this.#ctx.destination);
     }
 
-    get ctx() {
-        return this.#ctx
-    }
-
     /**
      * Adds audio data from a file at the provided path with a specific id.
      * 
@@ -155,6 +151,7 @@ export default class AudioPlayer {
     }
 
      resume(){
+        console.log(this.#ctx.state)
         if (this.#ctx.state === "suspended") {
 
                this.#ctx.resume().catch(e => {
@@ -170,6 +167,7 @@ export default class AudioPlayer {
      * Turns the audio player on or off.
      */
      onOffSwitch() {
+        console.log("on off audio")
         this.isOn = !this.isOn;
 
         if(this.isOn) {

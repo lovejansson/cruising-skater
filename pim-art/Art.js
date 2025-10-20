@@ -79,7 +79,6 @@ export default class Art {
 
 
     async start() {
-        console.log("STARTING")
         await this.#init();
         this.#privatePlay(this.ctx);
     }
