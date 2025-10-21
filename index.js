@@ -99,6 +99,8 @@ if (inputColorContainer && audioPlayerElement && inputColor) {
             togglePlayPause();
         } else if (data.action === "enter-fullscreen") {
             art.enterFullScreen();
+        } else if(data.action === "art-lost-focus") {
+            document.querySelector("body").focus();
         }
     });
 
