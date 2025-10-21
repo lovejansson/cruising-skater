@@ -100,7 +100,9 @@ if (inputColorContainer && audioPlayerElement && inputColor) {
         } else if (data.action === "enter-fullscreen") {
             art.enterFullScreen();
         } else if(data.action === "art-lost-focus") {
-            document.querySelector("body").focus();
+            console.log("RECEIVED ART LOST FOCUS")
+            if(document.activeElement !== null) document.activeElement.blur();
+           
         }
     });
 
