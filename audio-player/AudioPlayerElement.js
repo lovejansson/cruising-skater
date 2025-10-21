@@ -76,7 +76,7 @@ export default class AudioPlayerElement extends HTMLElement {
                     this.play();
                 }
             } else {
-               this.setIsActive();
+              if(this.isTouchPointer) this.setIsActive();
             }
       
             e.stopPropagation();
@@ -90,7 +90,7 @@ export default class AudioPlayerElement extends HTMLElement {
                     this.play();
                 }
             }  else {
-               this.setIsActive();
+                 if(this.isTouchPointer) this.setIsActive();
             }
         
             e.stopPropagation();
@@ -127,7 +127,7 @@ export default class AudioPlayerElement extends HTMLElement {
     }
 
     setIsActive() {
-if(this.isTouchPointer)         this.player.classList.toggle("active");
+         this.player.classList.toggle("active");
 
     }
     
@@ -169,7 +169,7 @@ if(this.isTouchPointer)         this.player.classList.toggle("active");
 
                     this.dispatchEvent(new CustomEvent("volume", {detail: {volume: this.volume}}));
                 } else {
-               this.setIsActive();
+                 if(this.isTouchPointer) this.setIsActive();
                 }
 
 
@@ -191,7 +191,7 @@ if(this.isTouchPointer)         this.player.classList.toggle("active");
 
                 this.dispatchEvent(new CustomEvent("volume", {detail: {volume: this.volume}}));
             } else {
-                this.setIsActive();
+             if(this.isTouchPointer) this.setIsActive();
             }
      
 
@@ -204,9 +204,9 @@ if(this.isTouchPointer)         this.player.classList.toggle("active");
     checkIfPlayerIsActive() {
         if(document.activeElement.classList.contains("player-part") 
             || document.activeElement.localName === "audio-player") {
-          this.setIsActive();
+       if(this.isTouchPointer) this.setIsActive();
         } else {
-          this.setIsActive();
+             if(this.isTouchPointer) this.setIsActive();
         }
     }
 
