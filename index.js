@@ -9,7 +9,16 @@ const inputColorContainer = document.querySelector("#input-color-container");
 const inputColor = document.querySelector("#input-color");
 const audioPlayerElement = document.querySelector("audio-player");
 
-
+/**
+ * 
+ * Idén är att om vi är på mobil så ska vi "aktivera playern när man klickar på den"
+ * 
+ * Andra klicket leder till att UI faktiskt gör det det ska 
+ * 
+ * Initialt så är den aktiverad 
+ * 
+ * Men om on blur sker och elementet inte är inom playern så ska man kunnde säga att den inte är aktiv
+ */
 
 
 if (inputColorContainer && audioPlayerElement && inputColor) {

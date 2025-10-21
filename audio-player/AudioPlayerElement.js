@@ -34,6 +34,7 @@ export default class AudioPlayerElement extends HTMLElement {
         shadowRoot.appendChild(templateContent.cloneNode(true));
         this.isOn = false;
         this.volume = DEFAULT_VOLUME;
+        this.isTouchPointer = window.matchMedia("(pointer: coarse)").matches;
     }
 
 
@@ -41,7 +42,7 @@ export default class AudioPlayerElement extends HTMLElement {
         if(DEBUG) console.log(`Connected audio player element: ${this.getAttribute("channel")} ${this.getAttribute("playlist")}`);
 
         const player = this.shadowRoot.querySelector("#player");
-        const playerControls = this.shadowRoot.querySelector("#player-controls");
+        const playerControls = this.shadowRoot.querySelector("#controls");
         const btnPlayPause = this.shadowRoot.querySelector("#btn-play-pause");
         const volumeControl =  this.shadowRoot.querySelector("#volume-control");
 
@@ -49,6 +50,7 @@ export default class AudioPlayerElement extends HTMLElement {
         if (!btnPlayPause) throw new Error("Missing DOM element: btnPlayPause");
         if (!volumeControl) throw new Error("Missing DOM element: volumeControl");
    
+        this.player = player;
         player.classList.add("hidden");
 
         this.volumeControl = volumeControl;
@@ -58,28 +60,56 @@ export default class AudioPlayerElement extends HTMLElement {
 
         this.dispatchEvent(new CustomEvent("volume", {detail: {volume: this.volume}}));
 
-        this.btnPlayPause.addEventListener("click", (e) => {
-            if(this.isOn) {
-                this.pause();
-            } else {
-                this.play();
-            }
+        document.addEventListener("focusout", () => {
 
+                this.checkIfPlayerIsActive();
+            
+          
+        });
+
+
+        this.btnPlayPause.addEventListener("click", (e) => {
+            if(this.isActive()) {
+                if(this.isOn) {
+                    this.pause();
+                } else {
+                    this.play();
+                }
+            } else {
+               this.setIsActive();
+            }
+      
             e.stopPropagation();
-        
         });
 
         player.addEventListener("click", (e) => {
-         
-            if(this.isOn) {
-                this.pause();
-            } else {
-                this.play();
+            if(this.isActive()) {
+                if(this.isOn) {
+                    this.pause();
+                } else {
+                    this.play();
+                }
+            }  else {
+               this.setIsActive();
             }
-
+        
             e.stopPropagation();
         });
 
+        player.addEventListener("mouseleave", () => {
+            if(player.classList.contains("active") && !this.isTouchPointer) {
+                player.classList.remove("active");
+            }
+        })
+
+
+        player.focus();
+        this.setIsActive();
+
+        // So active ska vara där från start på desktop också men det ska 
+        
+
+        // For surface around controls in the player
         playerControls.addEventListener("click", (e) => {
             e.stopPropagation();
         })
@@ -92,6 +122,15 @@ export default class AudioPlayerElement extends HTMLElement {
        if(DEBUG) console.log(`Attribute ${name} has changed from ${oldValue} to ${newValue}`);
     }
 
+    isActive(){
+        return !this.isTouchPointer || this.player.classList.contains("active");
+    }
+
+    setIsActive() {
+if(this.isTouchPointer)         this.player.classList.toggle("active");
+
+    }
+    
     play() {
         this.isOn = true;
         this.btnPlayPause.innerHTML = pauseIcon;
@@ -110,7 +149,6 @@ export default class AudioPlayerElement extends HTMLElement {
      */
     initVolumeControl() {
 
-
         this.volume = DEFAULT_VOLUME;
 
         const volumeControl =  this.shadowRoot.querySelector("#volume-control");
@@ -121,34 +159,55 @@ export default class AudioPlayerElement extends HTMLElement {
 
             button.addEventListener("click", (e) => {
 
-                const newVolume = (MAX_VOLUME / 5) * (parseInt(i) + 1);
+                if(this.isActive()) {
 
-                this.volume = this.volume === newVolume ? this.volume - MAX_VOLUME / 5 : newVolume;
+                    const newVolume = (MAX_VOLUME / 5) * (parseInt(i) + 1);
 
-                this.renderVolume();
+                    this.volume = this.volume === newVolume ? this.volume - MAX_VOLUME / 5 : newVolume;
 
-                this.dispatchEvent(new CustomEvent("volume", {detail: {volume: this.volume}}));
+                    this.renderVolume();
+
+                    this.dispatchEvent(new CustomEvent("volume", {detail: {volume: this.volume}}));
+                } else {
+               this.setIsActive();
+                }
+
 
                 e.stopPropagation();
             });
         }
 
         volumeControl.addEventListener("click", (e) => {
-            // Calculate which volume step based on position of click inside the volume control 
 
-            const xInVolumeControl = e.x - volumeControl.getBoundingClientRect().left;
+            if(this.isActive()) {
+                // Calculate which volume step based on position of click inside the volume control 
 
-            const newVolume = ((Math.floor(((xInVolumeControl / (volumeControl.clientWidth + 2)) * 100) / VOLUME_STEP)) + 1) * VOLUME_STEP;
-            this.volume = this.volume === newVolume ? this.volume - MAX_VOLUME / 5 : newVolume;
+                const xInVolumeControl = e.x - volumeControl.getBoundingClientRect().left;
 
-            this.renderVolume();
+                const newVolume = ((Math.floor(((xInVolumeControl / (volumeControl.clientWidth + 2)) * 100) / VOLUME_STEP)) + 1) * VOLUME_STEP;
+                this.volume = this.volume === newVolume ? this.volume - MAX_VOLUME / 5 : newVolume;
 
-            this.dispatchEvent(new CustomEvent("volume", {detail: {volume: this.volume}}));
+                this.renderVolume();
+
+                this.dispatchEvent(new CustomEvent("volume", {detail: {volume: this.volume}}));
+            } else {
+                this.setIsActive();
+            }
+     
 
             e.stopPropagation();
         });
 
         this.renderVolume();
+    }
+
+    checkIfPlayerIsActive() {
+        if(document.activeElement.classList.contains("player-part") 
+            || document.activeElement.localName === "audio-player") {
+          this.setIsActive();
+        } else {
+          this.setIsActive();
+        }
     }
 
     /**

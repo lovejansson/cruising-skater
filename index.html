@@ -14,7 +14,7 @@
         </canvas>
         <div id="input-color-container" class="display-none"></div>
         <input id="input-color" class="display-none" type="color" />
-        <audio-player></audio-player>   
+        <audio-player tabindex="0"></audio-player>   
     </main>
  
     <script type="module" src="/audio-player/AudioPlayerElement.js"></script>
@@ -51,9 +51,9 @@
             }
 
            
-                 .icon {
-            width: 2.4rem;
-        }
+            .icon {
+                width: 2.4rem;
+            }
 
             .hidden {
                 display: none;
@@ -72,24 +72,21 @@
                 justify-content: flex-end;
             }
 
-            #player:hover > #player-controls  {
-                opacity: 1;
-            }
-
-            #player-controls {
+            #controls {
                 width: 100%;
                 display: flex;
+                display: flex;
                 align-items: center;
-                justify-content: flex-start;
+                justify-content: flex-end;
                 opacity: 0;
                 transition: opacity 0.2s ease-in;
                 padding: 1rem;
             }
 
-            #player-controls {
-                display: flex;
-                align-items: center;
-                justify-content: flex-end;
+            #player:hover > #controls,  
+            #player.active > #controls {
+                opacity: 1;
+                outline: none;
             }
 
             #btn-play-pause {
@@ -124,15 +121,15 @@
 
         </style>
 
-        <div id="player">
-            <section id="player-controls">
-                <button id="btn-play-pause"><svg class="icon" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <path d="M10 20H8V4h2v2h2v3h2v2h2v2h-2v2h-2v3h-2v2z" fill="currentColor"/> </svg></button>
-                <div id="volume-control">
-                    <button></button>
-                    <button></button>
-                    <button></button>
-                    <button></button>
-                    <button></button>
+        <div tabindex="0"  id="player" class="player-part">
+            <section class="player-part" id="controls">
+                <button class="player-part" id="btn-play-pause"><svg class="icon" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <path d="M10 20H8V4h2v2h2v3h2v2h2v2h-2v2h-2v3h-2v2z" fill="currentColor"/> </svg></button>
+                <div class="player-part" id="volume-control">
+                    <button class="player-part"></button>
+                    <button class="player-part"></button>
+                    <button class="player-part"></button>
+                    <button class="player-part"></button>
+                    <button class="player-part"></button>
                 </div>
             </section>
         </div>
