@@ -68,15 +68,15 @@ export default class Art {
       
 
     enterFullScreen(){
-         const container = document.querySelector("body");
+         const body = document.querySelector("body");
 
-        if(!container) throw new Error("art container not found");
+        if(!body) throw new Error("art container not found");
 
         if(document.fullscreenElement === null) {
-            container.requestFullscreen();
-
+            body.requestFullscreen();
         } else {
-            console.warn("An element is already in fullscreen mode: ", document.fullscreenElement);
+            document.exitFullscreen();
+
         }
     }
 

@@ -32,6 +32,10 @@ if (inputColorContainer && audioPlayerElement && inputColor) {
         willReadFrequently: true
     });
 
+        audioPlayerElement.addEventListener("fullscreen", () => {
+    art.enterFullScreen();
+    })
+
     art.start();
 
     audioPlayerElement.addEventListener("pause", async () => {

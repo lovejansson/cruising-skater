@@ -21,120 +21,154 @@
     <script type="module" src="/index.js"></script>
 </body>
 
-     <template id="template-audio-player">
-        
-        <style>
+    
+<template id="template-audio-player">
 
-            :host {
-                --color: #fefefe;  
-            }
-        
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-         
-            }
+    <style>
+        :host {
+            --color: #fefefe;
+        }
 
-            button {
-                cursor: pointer;
-                background: none;
-                border: none;
-                padding: 0;
-                margin: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                outline: none;
-            }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
 
-           
-            .icon {
-                width: 2.4rem;
-            }
+        }
 
-            .hidden {
-                display: none;
-            }
+        button {
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            outline: none;
+        }
 
-            #player{
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: transparent;
-                cursor: pointer;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-end;
-          
-            }
 
-            #controls {
-                width: 100%;
-                display: flex;
-                display: flex;
-                align-items: center;
-                justify-content: flex-end;
-                opacity: 0;
-                transition: opacity 0.2s ease-in;
-                padding: 1rem;
-                background-color: #121212c9;
-            }
+        .icon {
+            width: 2.4rem;
+        }
 
-            #player:hover > #controls,  
-            #player.active > #controls {
-                opacity: 1;
-            }
+        .hidden {
+            display: none;
+        }
 
-            #player:focus {
-                outline: none;
-            }
+        #player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
 
-            #btn-play-pause {
-                color: var(--color);
-            }
+        }
 
-            #btn-play-pause:hover, #volume-control:hover{
-                opacity: 0.7;
-            }
+        #bar {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            opacity: 0;
+            transition: opacity 0.2s ease-in;
+            padding: 1rem;
+            background-color: #121212c9;
+            color: var(--color);
+        }
 
-            #volume-control {
-                display: flex;
-                align-items: center;
-                gap: 2px;
-                opacity: 1;
-                transition: opacity 0.2s ease;
-                height: 2.4rem;
-            }
+        #controls {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            color: var(--color);
+        }
 
-            .square-filled {
-                width: 0.75em;
-                aspect-ratio: 1/1;
-                background-color: var(--color);
-            }
+        #player:hover>#bar,
+        #player.active>#bar {
+            opacity: 1;
+        }
 
-            .square-empty {
-                width: 0.75em;
-                aspect-ratio: 1/1;
-                border: 2px solid var(--color);
-                background-color: transparent;
-            }
+        #player:focus {
+            outline: none;
+        }
 
-        </style>
+        #btn-play-pause {
+            color: var(--color);
+        }
 
-        <div tabindex="0"  id="player" class="player-part">
-            <section class="player-part" id="controls">
-                <button class="player-part" id="btn-play-pause"><svg class="icon" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <path d="M10 20H8V4h2v2h2v3h2v2h2v2h-2v2h-2v3h-2v2z" fill="currentColor"/> </svg></button>
-                <div class="player-part" id="volume-control">
-                    <button class="player-part"></button>
-                    <button class="player-part"></button>
-                    <button class="player-part"></button>
-                    <button class="player-part"></button>
-                    <button class="player-part"></button>
+        #btn-fullscreen:hover,
+        #btn-play-pause:hover,
+        #volume-control:hover {
+            opacity: 0.7;
+        }
+
+        #volume-control {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+            height: 2.4rem;
+        }
+
+        .square-filled {
+            width: 0.75em;
+            aspect-ratio: 1/1;
+            background-color: var(--color);
+        }
+
+        .square-empty {
+            width: 0.75em;
+            aspect-ratio: 1/1;
+            border: 2px solid var(--color);
+            background-color: transparent;
+        }
+
+        .icon {
+            width: 2.4rem;
+            height: 2.4rem;
+            color: var(--color);
+        }
+    </style>
+
+    <div tabindex="0" id="player">
+        <section id="bar">
+            <section id="controls">
+                <button id="btn-play-pause">
+                    <svg class="icon" fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M10 20H8V4h2v2h2v3h2v2h2v2h-2v2h-2v3h-2v2z" fill="currentColor" />
+                    </svg>
+                </button>
+
+                <div id="volume-control">
+                    <button></button>
+                    <button></button>
+                    <button></button>
+                    <button></button>
+                    <button></button>
                 </div>
             </section>
-        </div>
-    </template>
+            <button id="btn-fullscreen">
+               <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <!-- Top-left arrow -->
+                <path d="M3 9V3h6v2H5v4H3z"/>
+                <!-- Top-right arrow -->
+                <path d="M21 9h-2V5h-4V3h6v6z"/>
+                <!-- Bottom-left arrow -->
+                <path d="M3 15h2v4h4v2H3v-6z"/>
+                <!-- Bottom-right arrow -->
+                <path d="M15 21v-2h4v-4h2v6h-6z"/>
+                </svg>
+            </button>
+        </section>
+    </div>
+</template>
 </html>

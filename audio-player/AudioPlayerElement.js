@@ -45,10 +45,12 @@ export default class AudioPlayerElement extends HTMLElement {
         const playerControls = this.shadowRoot.querySelector("#controls");
         const btnPlayPause = this.shadowRoot.querySelector("#btn-play-pause");
         const volumeControl =  this.shadowRoot.querySelector("#volume-control");
+        const btnFullscreen = this.shadowRoot.querySelector("#btn-fullscreen");
 
         if(!player) throw new Error("Missing DOM element: player");
         if (!btnPlayPause) throw new Error("Missing DOM element: btnPlayPause");
         if (!volumeControl) throw new Error("Missing DOM element: volumeControl");
+        if(btnFullscreen === null) throw new Error("Missing DOM element: btnFullscreen")
    
         this.player = player;
         player.classList.add("hidden");
@@ -61,10 +63,7 @@ export default class AudioPlayerElement extends HTMLElement {
         this.dispatchEvent(new CustomEvent("volume", {detail: {volume: this.volume}}));
 
         document.addEventListener("focusout", () => {
-
                 this.checkIfPlayerIsActive();
-            
-          
         });
 
 
@@ -81,6 +80,14 @@ export default class AudioPlayerElement extends HTMLElement {
       
             e.stopPropagation();
         });
+
+        btnFullscreen.addEventListener("click", (e) => {
+            if(this.isActive()) {
+                this.dispatchEvent(new CustomEvent("fullscreen"))
+            }
+
+            e.stopPropagation();
+        })
 
         player.addEventListener("click", (e) => {
             if(this.isActive()) {
@@ -120,6 +127,7 @@ export default class AudioPlayerElement extends HTMLElement {
 
     attributeChangedCallback(name, oldValue, newValue) {
        if(DEBUG) console.log(`Attribute ${name} has changed from ${oldValue} to ${newValue}`);
+       this[name] = newValue;
     }
 
     isActive(){
@@ -202,9 +210,10 @@ export default class AudioPlayerElement extends HTMLElement {
     }
 
     checkIfPlayerIsActive() {
-        if(document.activeElement.classList.contains("player-part") 
-            || document.activeElement.localName === "audio-player") {
-       if(this.isTouchPointer) this.setIsActive();
+        
+
+       if(document.activeElement !== null && (document.activeElement === this || this.contains(document.activeElement))) { 
+                if(this.isTouchPointer) this.setIsActive();
         } else {
              if(this.isTouchPointer) this.setIsActive();
         }
